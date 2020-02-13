@@ -1,0 +1,12 @@
+version: "3.7"
+services:
+    jupyter-user:
+        image: eurodatacube/jupyter-user:0.11.3
+        environment:
+        - JUPYTER_ENABLE_LAB=yes
+        ports:
+        - 8888:8888
+        volumes:
+        - .:/mnt
+        - ./shared:/home/jovyan/.shared
+        command: ["bash", "-exc", "(cd /mnt && ./install_extension.sh) && start-notebook.sh"]
