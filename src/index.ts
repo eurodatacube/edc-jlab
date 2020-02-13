@@ -30,9 +30,12 @@ export function loadEdcJlab(
 
     app.commands.addCommand(catalog_cmd, {
         label: catalog_label,
+        // TODO: icon_class
         execute: () => {
             if (!iframe.isAttached) {
-                iframe.url = "https://eurodatacube.com";
+                // TODO: restrict sandbox permissions more! (allow-scripts + allow-same-origin = no sandbox)
+                //iframe.url = "https://eurodatacube.com";
+                iframe.url = "http://nb.myeox.at/notebooks";
                 iframe.id = "notebook_catalog";
                 iframe.title.label = catalog_label;
                 iframe.title.closable = true;
@@ -42,6 +45,12 @@ export function loadEdcJlab(
                     iframe.id
                 ).getElementsByTagName("iframe")[0];
                 iframeDomElem.addEventListener("load", notifyIFrameUrlChanged);
+                // We need cross domain iframe communication, so we have to
+                // remove the sandboxing :-(. However we only load the iframe from our
+                // domain, so it you'd have to hack the domain anyway to do damage.
+                // NOTE: if the iframe page loads fast, this call is too slow and the
+                //       first page load won't be able to set document domain.
+                iframeDomElem.removeAttribute("sandbox");
             } else {
                 app.shell.activateById(iframe.id);
             }
@@ -49,14 +58,28 @@ export function loadEdcJlab(
     });
 
     function notifyIFrameUrlChanged(event: Event): void {
-        console.log("event:", event)
+        const newPathname = (event.target as HTMLIFrameElement).contentWindow.location.pathname;
+        // pathname is something like /notebooks/a/b/c/nb.ipynb
+        const prefix = "/notebooks";
+        if (!newPathname.startsWith((prefix))) {
+            console.warn("Ignoring new iframe url " + newPathname);
+            return;
+        }
+
+        const nbPath = newPathname.substring(prefix.length);
+        console.log("nbpath", nbPath)
     }
 
+    // TODO: icon
     launcher.add({
-        category: "EDC",
+        category: "Euro Data Cube",
         command: catalog_cmd,
         rank: 0,
-    })
+    });
+
+    console.log("old doc dom", document.domain);
+    document.domain = "myeox.at"
+    console.log("new doc dom", document.domain);
 }
 
 export default extension;

@@ -9,4 +9,4 @@ services:
         volumes:
         - .:/mnt
         - ./shared:/home/jovyan/.shared
-        command: ["bash", "-exc", "(cd /mnt && ./install_extension.sh) && start-notebook.sh"]
+        command: ["bash", "-exc", "(cd /mnt && ./install_extension.sh) && start-notebook.sh --watch"]
