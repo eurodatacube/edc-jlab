@@ -2,8 +2,9 @@ import {
   JupyterFrontEnd, JupyterFrontEndPlugin, IRouter
 } from '@jupyterlab/application';
 import {ILauncher} from '@jupyterlab/launcher';
-import {IFrame} from '@jupyterlab/apputils';
+import {IFrame, MainAreaWidget, Toolbar, ToolbarButton} from '@jupyterlab/apputils';
 import {IDocumentManager} from '@jupyterlab/docmanager';
+import {ToolbarButtonComponent} from "@jupyterlab/apputils/lib/toolbar";
 
 /**
  * Initialization data for the edc-jlab extension.
@@ -25,9 +26,11 @@ export function loadEdcJlab(
     const catalog_cmd = "edc:notebook_catalog";
     const catalog_label = "Notebook Catalog";
 
+    let currentNbPath = "";
+
     const iframe = new IFrame();
     iframe.url = "http://nb.myeox.at/notebooks";
-    iframe.id = "notebook_catalog";
+    iframe.id = "edc_notebook_catalog";
     iframe.title.label = catalog_label;
     iframe.title.closable = true;
 
@@ -38,14 +41,37 @@ export function loadEdcJlab(
     // domain, so it you'd have to hack the domain anyway to do damage.
     iframeDomElem.removeAttribute("sandbox");
 
+    const toolbar = new Toolbar();
+    const props: ToolbarButtonComponent.IProps = {
+        label: "button yeah!",
+        enabled: true,  // TODO: dynamic update doesn't seem possible, just exchange button?
+        onClick: () => {
+            console.log("CLICKED!", currentNbPath);
+            docmanager.copy(".shared/" + currentNbPath, "").then((result) => {
+                docmanager.open(result.path);
+
+            })
+        },
+    };
+    const toolbarButton = new ToolbarButton(props);
+    toolbar.addItem("download", toolbarButton);
+    /*
+    toolbar.layout!.removeWidget(toolbarButton);
+    */
+
+    const widget = new MainAreaWidget({
+        content: iframe,
+        toolbar,
+    });
+
     app.commands.addCommand(catalog_cmd, {
         label: catalog_label,
         // TODO: icon_class
         execute: () => {
-            if (!iframe.isAttached) {
-                app.shell.add(iframe, "main");
+            if (!widget.isAttached) {
+                app.shell.add(widget, "main");
             }
-            app.shell.activateById(iframe.id);
+            app.shell.activateById(widget.id);
         }
     });
 
@@ -58,8 +84,8 @@ export function loadEdcJlab(
             return;
         }
 
-        const nbPath = newPathname.substring(prefix.length);
-        console.log("nbpath", nbPath)
+        currentNbPath = newPathname.substring(prefix.length);
+        console.log("nbpath", currentNbPath)
     }
 
     // TODO: icon
