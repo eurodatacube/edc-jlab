@@ -21,10 +21,9 @@ function getNotebookUrlFromIFrameEvent(event: Event): string | null {
     // pathname is something like /notebooks/a/b/c/nb.ipynb
     const prefix = "/notebooks";
     if (!newPathname.startsWith((prefix))) {
-        console.warn("Ignoring new iframe url " + newPathname);
+        console.warn(`Ignoring new iframe url ${newPathname}`);
         return null;
     }
-
     return newPathname.substring(prefix.length);
 }
 
@@ -44,11 +43,16 @@ function createToolbar(docmanager: IDocumentManager) {
         if (toolbarCopyButton) {
             toolbar.layout!.removeWidget(toolbarCopyButton);
         }
+        const enabled = isNotebookFile(currentNbPath);
         toolbarCopyButton = new ToolbarButton( {
-            label: "button yeah!",
-            enabled: isNotebookFile(currentNbPath),
+            label: "Download Notebook",
+            iconClassName: "fa fa-download",
+            enabled: enabled,
+            tooltip: enabled?
+                "Download notebook to home directory and open it" :
+                "Select a notebook to download",
             onClick: async () => {
-                const result = await docmanager.copy(".shared/" + currentNbPath, "");
+                const result = await docmanager.copy(`.shared/${currentNbPath}`, "");
                 docmanager.open(result.path);
                 // TODO: tell user that notebook is in root dir
             }
