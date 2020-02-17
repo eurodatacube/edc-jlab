@@ -12,7 +12,14 @@ const extension: JupyterFrontEndPlugin<void> = {
     id: 'edc-jlab',
     autoStart: true,
     requires: [ILauncher, IDocumentManager, IRouter],
-    activate: loadEdcJlab,
+    activate: (app: JupyterFrontEnd, launcher: ILauncher, docmanager: IDocumentManager, router: IRouter) => {
+        activateNotebookCatalog(app, docmanager, launcher);
+        activateCopyByRouter(app, docmanager, router);
+
+        // NOTE: nbviewer must use the same domain as this
+        // TODO: set to production value
+        document.domain = "myeox.at";
+    }
 };
 
 
@@ -51,16 +58,19 @@ function createToolbar(docmanager: IDocumentManager) {
             tooltip: enabled ?
                 "Download notebook to home directory and open it" :
                 "Select a notebook to download",
-            onClick: async () => {
-                const result = await docmanager.copy(`.shared/${currentNbPath}`, "");
-                docmanager.open(result.path);
-                // TODO: tell user that notebook is in root dir
-            }
+            onClick: () => deployNotebook(docmanager, currentNbPath),
         });
         toolbar.addItem("copy", toolbarCopyButton);
     }
     refreshToolbar("");
     return {toolbar, refreshToolbar}
+}
+
+
+async function deployNotebook(docmanager: IDocumentManager, nbPath: string): Promise<void> {
+    const result = await docmanager.copy(`.shared/${nbPath}`, "");
+    docmanager.open(result.path);
+    // TODO: tell user that notebook is in root dir?
 }
 
 
@@ -89,26 +99,29 @@ function createWidget(docmanager: IDocumentManager, catalog_label: string): Main
     });
 }
 
-export function loadEdcJlab(
-    app: JupyterFrontEnd,
-    launcher: ILauncher,
+
+/**
+ * Add a notebook catalog accessible via launcher icon. Shows notebooks in an own
+ * tab with an nbviewer iframe and a copy button.
+ */
+function activateNotebookCatalog(
+    app: JupyterFrontEnd<JupyterFrontEnd.IShell>,
     docmanager: IDocumentManager,
-    router: IRouter,
-) : void {
-    // TODO: add copy based on router if needed
-    const catalog_cmd = "edc:notebook_catalog";
-    const catalog_label = "Notebook Catalog";
+    launcher: ILauncher,
+) {
+    const catalogCommandName = "edc:notebook_catalog";
+    const catalogLabel = "Notebook Catalog";
 
     let notebookCatalogWidget: MainAreaWidget<IFrame> = null;
 
-    app.commands.addCommand(catalog_cmd, {
-        label: catalog_label,
+    app.commands.addCommand(catalogCommandName, {
+        label: catalogLabel,
         // TODO: icon_class
         execute: () => {
             if (!notebookCatalogWidget || !notebookCatalogWidget.isAttached) {
                 // it would be nicer to keep the widget instance, but it seems that
                 // detaching destroys the layout object of the toolbar :-/
-                notebookCatalogWidget = createWidget(docmanager, catalog_label);
+                notebookCatalogWidget = createWidget(docmanager, catalogLabel);
                 app.shell.add(notebookCatalogWidget, "main");
             }
             app.shell.activateById(notebookCatalogWidget.id);
@@ -118,13 +131,35 @@ export function loadEdcJlab(
     // TODO: icon
     launcher.add({
         category: "Euro Data Cube",
-        command: catalog_cmd,
+        command: catalogCommandName,
         rank: 0,
     });
+}
 
-    // NOTE: nbviewer must use the same domain as this
-    // TODO: set to production value
-    document.domain = "myeox.at";
+
+/**
+ * Enables copying files to the workspace by visiting the url:
+ *
+ * /lab?copy/my-notebook.ipynb
+ *
+ */
+function activateCopyByRouter(
+    app: JupyterFrontEnd<JupyterFrontEnd.IShell>,
+    docmanager: IDocumentManager,
+    router: IRouter,
+) {
+    const copyNotebookFromRouterCommandName = "edc:copyNotebookFromRouter";
+    router.register({
+        command: copyNotebookFromRouterCommandName,
+        pattern: /(\?copy|&copy)([^?]+)/,
+    });
+
+    app.commands.addCommand(copyNotebookFromRouterCommandName, {
+        execute: (args) => {
+            const path = (args.search as string).replace('?copy', '');
+            return deployNotebook(docmanager, path);
+        }
+    });
 }
 
 export default extension;
