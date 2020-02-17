@@ -42,6 +42,7 @@ function isNotebookFile(nbPath: string): boolean {
 
 function createToolbar(docmanager: IDocumentManager) {
     const toolbar = new Toolbar();
+    toolbar.addClass("edc-toolbar");
     let toolbarCopyButton: ToolbarButton | null = null;
 
     function refreshToolbar(currentNbPath: string): void {
