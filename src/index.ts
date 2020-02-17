@@ -48,7 +48,7 @@ function createToolbar(docmanager: IDocumentManager) {
             label: "Download Notebook",
             iconClassName: "fa fa-download",
             enabled: enabled,
-            tooltip: enabled?
+            tooltip: enabled ?
                 "Download notebook to home directory and open it" :
                 "Select a notebook to download",
             onClick: async () => {
@@ -64,7 +64,7 @@ function createToolbar(docmanager: IDocumentManager) {
 }
 
 
-function createIFrame(docmanager: IDocumentManager, catalog_label: string) {
+function createWidget(docmanager: IDocumentManager, catalog_label: string): MainAreaWidget<IFrame> {
     const iframe = new IFrame();
     iframe.url = "http://nb.myeox.at/notebooks";  // TODO
     iframe.id = "edc_notebook_catalog";
@@ -83,7 +83,10 @@ function createIFrame(docmanager: IDocumentManager, catalog_label: string) {
     // domain, so it you'd have to hack the domain anyway to do damage.
     iframeDomElem.removeAttribute("sandbox");
 
-    return {iframe, toolbar};
+    return new MainAreaWidget({
+        content: iframe,
+        toolbar,
+    });
 }
 
 export function loadEdcJlab(
@@ -96,18 +99,16 @@ export function loadEdcJlab(
     const catalog_cmd = "edc:notebook_catalog";
     const catalog_label = "Notebook Catalog";
 
-    const {iframe, toolbar} = createIFrame(docmanager, catalog_label);
-
-    const notebookCatalogWidget = new MainAreaWidget({
-        content: iframe,
-        toolbar,
-    });
+    let notebookCatalogWidget: MainAreaWidget<IFrame> = null;
 
     app.commands.addCommand(catalog_cmd, {
         label: catalog_label,
         // TODO: icon_class
         execute: () => {
-            if (!notebookCatalogWidget.isAttached) {
+            if (!notebookCatalogWidget || !notebookCatalogWidget.isAttached) {
+                // it would be nicer to keep the widget instance, but it seems that
+                // detaching destroys the layout object of the toolbar :-/
+                notebookCatalogWidget = createWidget(docmanager, catalog_label);
                 app.shell.add(notebookCatalogWidget, "main");
             }
             app.shell.activateById(notebookCatalogWidget.id);
