@@ -16,9 +16,10 @@ const extension: JupyterFrontEndPlugin<void> = {
         activateNotebookCatalog(app, docmanager, launcher);
         activateCopyByRouter(app, docmanager, router);
 
-        // NOTE: nbviewer must use the same domain as this
-        // TODO: set to production value
-        document.domain = "myeox.at";
+         // we set the domain to the last 2 domain parts to be able to communicate with
+        // the child frame
+        // this code would not work for domains with 3 dots such as a.co.uk.
+        document.domain = document.location.hostname.split(".").slice(-2).join(".");
     }
 };
 
