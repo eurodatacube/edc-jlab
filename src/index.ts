@@ -1,3 +1,8 @@
+// Author: Bernhard Mallinger
+// Copyright (c) EOX IT Services
+// Distributed under the terms of the MIT License.
+
+
 import {
   JupyterFrontEnd, JupyterFrontEndPlugin, IRouter
 } from '@jupyterlab/application';

@@ -11,7 +11,7 @@
   "bugs": {
     "url": "https://github.com/eurodatacube/edc-jlab.git/issues"
   },
-  "license": "BSD-3-Clause",
+  "license": "MIT",
   "author": "Bernhard Mallinger",
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
