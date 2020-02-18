@@ -50,7 +50,12 @@ function getNotebookUrlFromIFrameEvent(event: Event): string | null {
         console.warn(`Ignoring new iframe url ${newPathname}`);
         return null;
     }
-    return newPathname.substring(prefix.length);
+
+    // NOTE: nbviewer url path and notebook path are the same, but this is an accident!
+    //       nbviewer uses "/notebooks" as url prefix to serve local files. But also
+    //       the main directory of the notebooks is called "notebooks", and nbviewer
+    //       services files directly from this directory.
+    return newPathname;
 }
 
 
