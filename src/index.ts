@@ -139,12 +139,9 @@ async function copyNotebookTo(docmanager: IDocumentManager, nbPath: string, targ
 }
 
 
-function createWidget(docmanager: IDocumentManager, catalog_label: string): MainAreaWidget<IFrame> {
+function createWidget(docmanager: IDocumentManager): MainAreaWidget<IFrame> {
     const iframe = new IFrame();
     iframe.url = "http://nb.myeox.at/notebooks";  // TODO
-    iframe.id = "edc_notebook_catalog";
-    iframe.title.label = catalog_label;
-    iframe.title.closable = true;
 
     const {toolbar, refreshToolbar} = createToolbar(docmanager);
 
@@ -176,25 +173,28 @@ function activateNotebookCatalog(
     launcher: ILauncher,
 ) {
     const catalogCommandName = "edc:notebook_catalog";
-    const catalogLabel = "Notebook Catalog";
+    const catalogLabel = "EDC Notebook Catalog";
+    const catalogIconClass = "notebook-catalog-icon";
 
     let notebookCatalogWidget: MainAreaWidget<IFrame> = null;
 
     app.commands.addCommand(catalogCommandName, {
         label: catalogLabel,
-        // TODO: icon_class
+        iconClass: catalogIconClass,
         execute: () => {
             if (!notebookCatalogWidget || !notebookCatalogWidget.isAttached) {
                 // it would be nicer to keep the widget instance, but it seems that
                 // detaching destroys the layout object of the toolbar :-/
-                notebookCatalogWidget = createWidget(docmanager, catalogLabel);
+                notebookCatalogWidget = createWidget(docmanager);
+                notebookCatalogWidget.title.label = catalogLabel;
+                notebookCatalogWidget.title.iconClass = catalogIconClass;
+                notebookCatalogWidget.title.closable = true;
                 app.shell.add(notebookCatalogWidget, "main");
             }
             app.shell.activateById(notebookCatalogWidget.id);
         }
     });
 
-    // TODO: icon
     launcher.add({
         category: "Euro Data Cube",
         command: catalogCommandName,

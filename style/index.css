@@ -31,3 +31,7 @@
   color: #fff !important;
   font-size: 1rem !important;
 }
+
+.notebook-catalog-icon {
+   background-image: url('images/EDC_logo_square_blue.svg')
+}
