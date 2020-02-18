@@ -59,12 +59,12 @@ function createToolbar(docmanager: IDocumentManager) {
         }
         const enabled = isNotebookFile(currentNbPath);
         toolbarCopyButton = new ToolbarButton( {
-            label: "Download Notebook",
+            label: "Execute Notebook",
             iconClassName: "fa fa-download",
             enabled: enabled,
             tooltip: enabled ?
-                "Download notebook to home directory and open it" :
-                "Select a notebook to download",
+                "Execute notebook to home directory and open it" :
+                "Select a notebook to execute",
             onClick: () => deployNotebook(docmanager, currentNbPath),
         });
         toolbar.addItem("copy", toolbarCopyButton);
