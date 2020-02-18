@@ -17,7 +17,11 @@ import {IDocumentManager} from '@jupyterlab/docmanager';
 
 
 const SHARED_FOLDER = ".shared";
-const NBVIEWER_IFRAME_URL = "https://edc-dev-nbviewer.hub.eox.at/notebooks";  // TODO
+
+// NOTE: this is somewhat of a hack, but it works fine for prod, dev and local.
+//       we'd need to add some kind of instance-wide configuration to do this properly.
+const NBVIEWER_IFRAME_URL =
+    document.location.origin.replace("jupyter", "nbviewer") + "/notebooks";
 
 /**
  * Initialization data for the edc-jlab extension.
