@@ -15,6 +15,10 @@ import {
 } from '@jupyterlab/apputils';
 import {IDocumentManager} from '@jupyterlab/docmanager';
 
+
+const SHARED_FOLDER = ".shared";
+const NBVIEWER_IFRAME_URL = "https://edc-dev-nbviewer.hub.eox.at/notebooks";  // TODO
+
 /**
  * Initialization data for the edc-jlab extension.
  */
@@ -86,7 +90,7 @@ async function deployNotebook(docmanager: IDocumentManager, nbPath: string): Pro
     // NOTE: this downloads the whole notebook just to display the metadata. I haven't
     //       yet found a better way to do this. We'll need to disable this if the
     //       notebooks are too large.
-    const nbModel = await docmanager.services.contents.get(`/.shared/${nbPath}` );
+    const nbModel = await docmanager.services.contents.get(`/${SHARED_FOLDER}/${nbPath}` );
     const properties =
         (nbModel.content.metadata && nbModel.content.metadata.properties) ?
             nbModel.content.metadata.properties :
@@ -127,7 +131,7 @@ async function copyNotebookTo(docmanager: IDocumentManager, nbPath: string, targ
     // copy doesn't allow specifying a target filename, only a target dir
     // rename however does support a directory move + new name, so we combine
     // these operations.
-    const copyResult = await docmanager.copy(`.shared/${nbPath}`, "");
+    const copyResult = await docmanager.copy(`${SHARED_FOLDER}/${nbPath}`, "");
     try {
         const renameResult = await docmanager.rename(copyResult.path, targetPath);
         await docmanager.open(renameResult.path);
@@ -141,7 +145,7 @@ async function copyNotebookTo(docmanager: IDocumentManager, nbPath: string, targ
 
 function createWidget(docmanager: IDocumentManager): MainAreaWidget<IFrame> {
     const iframe = new IFrame();
-    iframe.url = "http://nb.myeox.at/notebooks";  // TODO
+    iframe.url = NBVIEWER_IFRAME_URL;
 
     const {toolbar, refreshToolbar} = createToolbar(docmanager);
 
