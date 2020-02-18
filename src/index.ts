@@ -74,7 +74,13 @@ function createToolbar(docmanager: IDocumentManager) {
 }
 
 
+/**
+ * Ask user about path and copies notebook there
+ */
 async function deployNotebook(docmanager: IDocumentManager, nbPath: string): Promise<void> {
+    // NOTE: this downloads the whole notebook just to display the metadata. I haven't
+    //       yet found a better way to do this. We'll need to disable this if the
+    //       notebooks are too large.
     const nbModel = await docmanager.services.contents.get(`/.shared/${nbPath}` );
     const properties =
         (nbModel.content.metadata && nbModel.content.metadata.properties) ?
@@ -88,31 +94,42 @@ async function deployNotebook(docmanager: IDocumentManager, nbPath: string): Pro
     let label = selectLabel;
 
     // repeat input in case of problems
-    while (true) {
+    let bailout = false;
+    while (!bailout) {
         const res = await InputDialog.getText({
             text: nbPath,
             title: "Copy notebook to workspace",
             label,
         });
         if (!res.button.accept) {
-            return;
+            bailout = true;
+        } else {
+            const targetPath = res.value as string;
+            bailout = await copyNotebookTo(docmanager, nbPath, targetPath);
+            if (!bailout) {
+                // TODO: make this more beautiful
+                label = `Failed to upload to name "${targetPath}". ${selectLabel}`;
+            }
         }
+    }
+}
 
-        const targetPath = res.value as string;
 
-        // copy doesn't allow specifying a target filename, only a target dir
-        // rename however does support a directory move + new name, so we combine
-        // these operations.
-        const copyResult = await docmanager.copy(`.shared/${nbPath}`, "");
-        try {
-            const renameResult = await docmanager.rename(copyResult.path, targetPath);
-            await docmanager.open(renameResult.path);
-            return
-        } catch (ex) {
-            await docmanager.deleteFile(copyResult.path);
-            // TODO: make this more beautiful
-            label = `Failed to upload to name "${targetPath}". ${selectLabel}`;
-        }
+/**
+ * Downloads notebook to desired path
+ */
+async function copyNotebookTo(docmanager: IDocumentManager, nbPath: string, targetPath: string) {
+    // copy doesn't allow specifying a target filename, only a target dir
+    // rename however does support a directory move + new name, so we combine
+    // these operations.
+    const copyResult = await docmanager.copy(`.shared/${nbPath}`, "");
+    try {
+        const renameResult = await docmanager.rename(copyResult.path, targetPath);
+        await docmanager.open(renameResult.path);
+        return true;
+    } catch (ex) {
+        await docmanager.deleteFile(copyResult.path);
+        return false;
     }
 }
 
