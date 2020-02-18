@@ -110,12 +110,15 @@ async function deployNotebook(docmanager: IDocumentManager, nbPath: string): Pro
         `Select a file path to copy the notebook "${nbName}" (version: ${nbVersion}) to:` :
         "Select a file path to copy the notebook to:";
     let label = selectLabel;
+    // suggest just the filename since it doesn't seem easy to create directories here
+    // and also the users probably don't want to mirror the notebook repo dir structure.
+    const suggestedPath = nbPath.substring(nbPath.lastIndexOf("/") + 1);
 
     // repeat input in case of problems
     let bailout = false;
     while (!bailout) {
         const res = await InputDialog.getText({
-            text: nbPath,
+            text: suggestedPath,
             title: "Copy notebook to workspace",
             label,
         });
