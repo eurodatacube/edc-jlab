@@ -2,7 +2,12 @@ import {
   JupyterFrontEnd, JupyterFrontEndPlugin, IRouter
 } from '@jupyterlab/application';
 import {ILauncher} from '@jupyterlab/launcher';
-import {IFrame, MainAreaWidget, Toolbar, ToolbarButton} from '@jupyterlab/apputils';
+import {
+    IFrame, InputDialog,
+    MainAreaWidget,
+    Toolbar,
+    ToolbarButton
+} from '@jupyterlab/apputils';
 import {IDocumentManager} from '@jupyterlab/docmanager';
 
 /**
@@ -70,9 +75,45 @@ function createToolbar(docmanager: IDocumentManager) {
 
 
 async function deployNotebook(docmanager: IDocumentManager, nbPath: string): Promise<void> {
-    const result = await docmanager.copy(`.shared/${nbPath}`, "");
-    docmanager.open(result.path);
-    // TODO: tell user that notebook is in root dir?
+    const nbModel = await docmanager.services.contents.get(`/.shared/${nbPath}` );
+    const properties =
+        (nbModel.content.metadata && nbModel.content.metadata.properties) ?
+            nbModel.content.metadata.properties :
+            {};
+    const nbName = properties.name;
+    const nbVersion = properties.version;
+    const selectLabel = (nbName && nbVersion) ?
+        `Select a file path to copy the notebook "${nbName}" (version: ${nbVersion}) to:` :
+        "Select a file path to copy the notebook to:";
+    let label = selectLabel;
+
+    // repeat input in case of problems
+    while (true) {
+        const res = await InputDialog.getText({
+            text: nbPath,
+            title: "Copy notebook to workspace",
+            label,
+        });
+        if (!res.button.accept) {
+            return;
+        }
+
+        const targetPath = res.value as string;
+
+        // copy doesn't allow specifying a target filename, only a target dir
+        // rename however does support a directory move + new name, so we combine
+        // these operations.
+        const copyResult = await docmanager.copy(`.shared/${nbPath}`, "");
+        try {
+            const renameResult = await docmanager.rename(copyResult.path, targetPath);
+            await docmanager.open(renameResult.path);
+            return
+        } catch (ex) {
+            await docmanager.deleteFile(copyResult.path);
+            // TODO: make this more beautiful
+            label = `Failed to upload to name "${targetPath}". ${selectLabel}`;
+        }
+    }
 }
 
 
@@ -92,7 +133,8 @@ function createWidget(docmanager: IDocumentManager, catalog_label: string): Main
     });
     // We need cross domain iframe communication, so we have to
     // remove the sandboxing :-(. However we only load the iframe from our
-    // domain, so it you'd have to hack the domain anyway to do damage.
+    // domain, so it you'd have to hack the domain anyway to do damage. Also
+    // the nbviewer has a very small attack surface.
     iframeDomElem.removeAttribute("sandbox");
 
     return new MainAreaWidget({
