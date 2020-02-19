@@ -96,23 +96,12 @@ function createToolbar(docmanager: IDocumentManager) {
  * Ask user about path and copies notebook there
  */
 async function deployNotebook(docmanager: IDocumentManager, nbPath: string): Promise<void> {
-    // NOTE: this downloads the whole notebook just to display the metadata. I haven't
-    //       yet found a better way to do this. We'll need to disable this if the
-    //       notebooks are too large.
-    const nbModel = await docmanager.services.contents.get(`/${SHARED_FOLDER}/${nbPath}` );
-    const properties =
-        (nbModel.content.metadata && nbModel.content.metadata.properties) ?
-            nbModel.content.metadata.properties :
-            {};
-    const nbName = properties.name;
-    const nbVersion = properties.version;
-    const selectLabel = (nbName && nbVersion) ?
-        `Select a file path to copy the notebook "${nbName}" (version: ${nbVersion}) to:` :
-        "Select a file path to copy the notebook to:";
-    let label = selectLabel;
     // suggest just the filename since it doesn't seem easy to create directories here
     // and also the users probably don't want to mirror the notebook repo dir structure.
     const suggestedPath = nbPath.substring(nbPath.lastIndexOf("/") + 1);
+
+    const selectLabel = `Select a file path to copy the notebook "${suggestedPath}" to:`;
+    let label = selectLabel;
 
     // repeat input in case of problems
     let bailout = false;
