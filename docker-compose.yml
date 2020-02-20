@@ -1,7 +1,7 @@
 version: "3.7"
 services:
     jupyter-user:
-        image: eurodatacube/jupyter-user:0.11.3
+        image: eurodatacube/jupyter-user:0.13.1
         environment:
         - JUPYTER_ENABLE_LAB=yes
         ports:
@@ -10,3 +10,10 @@ services:
         - .:/mnt
         - ./shared:/home/jovyan/.shared
         command: ["bash", "-exc", "(cd /mnt && ./install_extension.sh) && start-notebook.sh --watch"]
+    nginx:
+        image: nginx:1.17.8
+        network_mode: host
+        ports:
+        - 8000:8000
+        volumes:
+        - .dev/nginx-conf.d:/etc/nginx/conf.d

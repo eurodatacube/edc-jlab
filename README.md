@@ -4,6 +4,23 @@
 
 Jupyterlab extension for Euro Data Cube
 
+## Development
+
+edc-jlab integrates an instance of nbviewer, so for effective development, you need to somehow reference one.
+This repo includes an nginx config which sets up an nginx which reverse proxies `jupyter.myeox.at` to the local jupyter-user and `nbviewer.myeox.at` to the nbviewer.
+You'll need to configure your `/etc/hosts` to point to localhost:
+
+```
+127.0.0.1  jupyter.myeox.at nbviewer.myeox.at
+```
+
+So then to get started, you just need to `docker-compose up` and run nbviewer at `localhost:8080`. For live-reload, you can run this:
+
+
+```
+docker-compose exec jupyter-user bash -c "cd /mnt && jlpm watch"
+```
+
 
 ## Requirements
 
