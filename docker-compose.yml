@@ -16,4 +16,4 @@ services:
         ports:
         - 8000:8000
         volumes:
-        - .dev/nginx-conf.d:/etc/nginx/conf.d
+        - ./dev/nginx-conf.d:/etc/nginx/conf.d
