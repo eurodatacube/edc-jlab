@@ -4,16 +4,18 @@
 
 
 import {
-  JupyterFrontEnd, JupyterFrontEndPlugin, IRouter
+    JupyterFrontEnd, JupyterFrontEndPlugin, IRouter
 } from '@jupyterlab/application';
-import {ILauncher} from '@jupyterlab/launcher';
+import { ILauncher } from '@jupyterlab/launcher';
 import {
     IFrame, InputDialog,
     MainAreaWidget,
     Toolbar,
-    ToolbarButton
+    ToolbarButton,
+    Dialog,
 } from '@jupyterlab/apputils';
-import {IDocumentManager} from '@jupyterlab/docmanager';
+import { IDocumentManager } from '@jupyterlab/docmanager';
+import { Widget } from '@phosphor/widgets';
 
 
 const SHARED_FOLDER = ".shared";
@@ -34,7 +36,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         activateNotebookCatalog(app, docmanager, launcher);
         activateCopyByRouter(app, docmanager, router);
 
-         // we set the domain to the last 2 domain parts to be able to communicate with
+        // we set the domain to the last 2 domain parts to be able to communicate with
         // the child frame
         // this code would not work for domains with 3 dots such as a.co.uk.
         document.domain = document.location.hostname.split(".").slice(-2).join(".");
@@ -76,7 +78,7 @@ function createToolbar(docmanager: IDocumentManager) {
             toolbar.layout!.removeWidget(toolbarCopyButton);
         }
         const enabled = isNotebookFile(currentNbPath);
-        toolbarCopyButton = new ToolbarButton( {
+        toolbarCopyButton = new ToolbarButton({
             label: "Execute Notebook",
             iconClassName: "fa fa-download",
             enabled: enabled,
@@ -88,7 +90,17 @@ function createToolbar(docmanager: IDocumentManager) {
         toolbar.addItem("copy", toolbarCopyButton);
     }
     refreshToolbar("");
-    return {toolbar, refreshToolbar}
+    return { toolbar, refreshToolbar }
+}
+
+
+class HtmlLabelRenderer extends Dialog.Renderer {
+    createBody(value: Dialog.Body<any>): Widget {
+        const label = (value as Widget).node.querySelector("label")
+        // show html as html
+        label.innerHTML = label.innerText;
+        return super.createBody(value);
+    }
 }
 
 
@@ -100,7 +112,7 @@ async function deployNotebook(docmanager: IDocumentManager, nbPath: string): Pro
     // and also the users probably don't want to mirror the notebook repo dir structure.
     const suggestedPath = nbPath.substring(nbPath.lastIndexOf("/") + 1);
 
-    const selectLabel = `Select a file path to copy the notebook "${suggestedPath}" to:`;
+    const selectLabel = `Select a filename for the notebook "${suggestedPath}":`
     let label = selectLabel;
 
     // repeat input in case of problems
@@ -109,6 +121,7 @@ async function deployNotebook(docmanager: IDocumentManager, nbPath: string): Pro
         const res = await InputDialog.getText({
             text: suggestedPath,
             title: "Copy notebook to workspace",
+            renderer: new HtmlLabelRenderer,
             label,
         });
         if (!res.button.accept) {
@@ -117,8 +130,9 @@ async function deployNotebook(docmanager: IDocumentManager, nbPath: string): Pro
             const targetPath = res.value as string;
             bailout = await copyNotebookTo(docmanager, nbPath, targetPath);
             if (!bailout) {
-                // TODO: make this more beautiful
-                label = `Failed to upload to name "${targetPath}". ${selectLabel}`;
+                label = `<p><b>Saving failed: existing or wrong filename</b></p>
+                <p>If the file "${targetPath}" already exists, you can access it in the filebrowser on the left side of the screen.</p>
+                ${selectLabel}`;
             }
         }
     }
@@ -135,7 +149,7 @@ async function copyNotebookTo(docmanager: IDocumentManager, nbPath: string, targ
     const copyResult = await docmanager.copy(`${SHARED_FOLDER}/${nbPath}`, "");
     try {
         const renameResult = await docmanager.rename(copyResult.path, targetPath);
-        await docmanager.open(renameResult.path);
+        docmanager.open(renameResult.path);
         return true;
     } catch (ex) {
         await docmanager.deleteFile(copyResult.path);
@@ -148,10 +162,10 @@ function createWidget(docmanager: IDocumentManager): MainAreaWidget<IFrame> {
     const iframe = new IFrame();
     iframe.url = NBVIEWER_IFRAME_URL;
 
-    const {toolbar, refreshToolbar} = createToolbar(docmanager);
+    const { toolbar, refreshToolbar } = createToolbar(docmanager);
 
     const iframeDomElem = iframe.node.querySelector("iframe");
-    iframeDomElem.addEventListener("load", (event: Event ) => {
+    iframeDomElem.addEventListener("load", (event: Event) => {
         const nbPath = getNotebookUrlFromIFrameEvent(event);
         refreshToolbar(nbPath);
     });
