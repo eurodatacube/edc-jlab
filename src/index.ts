@@ -236,13 +236,16 @@ function activateCopyByRouter(
     const copyNotebookFromRouterCommandName = "edc:copyNotebookFromRouter";
     router.register({
         command: copyNotebookFromRouterCommandName,
-        pattern: /(\?copy|&copy)([^?]+)/,
+        pattern: /(\?copy=|&copy=)([^?]+)/,
     });
 
     app.commands.addCommand(copyNotebookFromRouterCommandName, {
         execute: (args) => {
-            const path = (args.search as string).replace('?copy', '');
-            return deployNotebook(docmanager, path);
+            const urlParams = new URLSearchParams(args.search as string);
+            const path = urlParams.get("copy");
+            if (path) {
+                return deployNotebook(docmanager, path);
+            }
         }
     });
 }
