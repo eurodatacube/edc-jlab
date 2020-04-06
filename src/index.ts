@@ -40,6 +40,13 @@ const extension: JupyterFrontEndPlugin<void> = {
         // the child frame
         // this code would not work for domains with 3 dots such as a.co.uk.
         document.domain = document.location.hostname.split(".").slice(-2).join(".");
+
+        // NOTE: enable this to run test (yes, this approach is better than wasting
+        //       hours trying to get jest to run in a ts setup with custom settings)
+        const run_tests = false;
+        if (run_tests) {
+            test();
+        }
     }
 };
 
@@ -241,13 +248,36 @@ function activateCopyByRouter(
 
     app.commands.addCommand(copyNotebookFromRouterCommandName, {
         execute: (args) => {
-            const urlParams = new URLSearchParams(args.search as string);
-            const path = urlParams.get("copy");
+            console.log("Copy notebook from ", args, args.search);
+            const path = parseCopyUrlParam(args.search as string);
             if (path) {
                 return deployNotebook(docmanager, path);
             }
         }
     });
 }
+
+export function parseCopyUrlParam(search: string): string | null {
+    const urlParams = new URLSearchParams(search);
+    const path = urlParams.get("copy");
+    console.log("Parsed URL parameters:", urlParams.toString(), path);
+    return path;
+}
+
+
+/**
+ * It's so ridiculously hard to just run some ts code in current js ecosystem
+ * if you have a setup that's a tiny bit different from the example setup. Both
+ * using jest-ts and babel result in random errors in some dependency.
+ * The only environment where you actually can run this code is in the browser when
+ * the complete bundle is built, so we have to rely on that.
+ */
+function test() {
+    // regular copy
+    console.assert(parseCopyUrlParam("?copy=foo/bar") == "foo/bar");
+    // escaped url parameters after login redirect
+    console.assert(parseCopyUrlParam("?copy=foo%2Fbar&redirect=1") == "foo/bar");
+}
+
 
 export default extension;
