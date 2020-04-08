@@ -24,7 +24,7 @@ docker-compose exec jupyter-user bash -c "cd /mnt && jlpm watch"
 
 ## Requirements
 
-* JupyterLab >= 1.0
+* JupyterLab >= 2.0
 
 ## Install
 

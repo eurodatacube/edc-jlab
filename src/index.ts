@@ -15,7 +15,7 @@ import {
     Dialog,
 } from '@jupyterlab/apputils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
-import { Widget } from '@phosphor/widgets';
+import { Widget } from '@lumino/widgets';
 
 
 const SHARED_FOLDER = ".shared";
@@ -87,7 +87,7 @@ function createToolbar(docmanager: IDocumentManager) {
         const enabled = isNotebookFile(currentNbPath);
         toolbarCopyButton = new ToolbarButton({
             label: "Execute Notebook",
-            iconClassName: "fa fa-download",
+            iconClass: "fa fa-download",
             enabled: enabled,
             tooltip: enabled ?
                 "Execute notebook to home directory and open it" :
@@ -153,6 +153,9 @@ async function copyNotebookTo(docmanager: IDocumentManager, nbPath: string, targ
     // copy doesn't allow specifying a target filename, only a target dir
     // rename however does support a directory move + new name, so we combine
     // these operations.
+    console.log(
+        `Copy notebook "${nbPath}" from shared "${SHARED_FOLDER}" to "${targetPath}"`
+    );
     const copyResult = await docmanager.copy(`${SHARED_FOLDER}/${nbPath}`, "");
     try {
         const renameResult = await docmanager.rename(copyResult.path, targetPath);
@@ -248,7 +251,7 @@ function activateCopyByRouter(
 
     app.commands.addCommand(copyNotebookFromRouterCommandName, {
         execute: (args) => {
-            console.log("Copy notebook from ", args, args.search);
+            console.log("Copy notebook from args: ", args, args.search);
             const path = parseCopyUrlParam(args.search as string);
             if (path) {
                 return deployNotebook(docmanager, path);
