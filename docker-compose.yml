@@ -1,7 +1,7 @@
 version: "3.7"
 services:
     jupyter-user:
-        image: jupyter/scipy-notebook:dc9744740e12
+        image: eurodatacube/jupyter-user:0.17.8
         environment:
         - JUPYTER_ENABLE_LAB=yes
         ports:
@@ -9,9 +9,7 @@ services:
         volumes:
         - .:/mnt
         - ./shared:/home/jovyan/.shared
-        command: ["bash", "-exc", "(cd /mnt && ./install_extension.sh) && start-notebook.sh --watch"]
-        #command: ["bash", "-exc", "start-notebook.sh --watch"]
-        #command: ["bash"]
+        command: ["bash", "-exc", "(cd /mnt && ./install_extension.sh) && bash /usr/local/bin/start-notebook.sh --watch"]
     nginx:
         image: nginx:1.17.8
         network_mode: host

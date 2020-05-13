@@ -17,8 +17,16 @@ import {
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { Widget } from '@lumino/widgets';
 
+import { IFileBrowserFactory, FileBrowser } from '@jupyterlab/filebrowser';
+import { Contents } from '@jupyterlab/services';
+import { toArray } from '@lumino/algorithm';
+
 
 const SHARED_FOLDER = ".shared";
+// TODO: setup these folders in user shares
+const CONTRIBUTE_STAGING_PATH = ".contribute-staging";
+
+const EDC_ICON_CLASS = "notebook-catalog-icon";
 
 // NOTE: this is somewhat of a hack, but it works fine for prod, dev and local.
 //       we'd need to add some kind of instance-wide configuration to do this properly.
@@ -31,10 +39,17 @@ const NBVIEWER_IFRAME_URL =
 const extension: JupyterFrontEndPlugin<void> = {
     id: 'edc-jlab',
     autoStart: true,
-    requires: [ILauncher, IDocumentManager, IRouter],
-    activate: (app: JupyterFrontEnd, launcher: ILauncher, docmanager: IDocumentManager, router: IRouter) => {
+    requires: [ILauncher, IDocumentManager, IRouter, IFileBrowserFactory],
+        activate: (
+            app: JupyterFrontEnd,
+            launcher: ILauncher,
+            docmanager: IDocumentManager,
+            router: IRouter,
+            factory: IFileBrowserFactory
+        ) => {
         activateNotebookCatalog(app, docmanager, launcher);
         activateCopyByRouter(app, docmanager, router);
+        activateContribute(app, docmanager, factory);
 
         // we set the domain to the last 2 domain parts to be able to communicate with
         // the child frame
@@ -203,20 +218,19 @@ function activateNotebookCatalog(
 ) {
     const catalogCommandName = "edc:notebook_catalog";
     const catalogLabel = "EDC Notebook Catalog";
-    const catalogIconClass = "notebook-catalog-icon";
 
     let notebookCatalogWidget: MainAreaWidget<IFrame> = null;
 
     app.commands.addCommand(catalogCommandName, {
         label: catalogLabel,
-        iconClass: catalogIconClass,
+        iconClass: EDC_ICON_CLASS,
         execute: () => {
             if (!notebookCatalogWidget || !notebookCatalogWidget.isAttached) {
                 // it would be nicer to keep the widget instance, but it seems that
                 // detaching destroys the layout object of the toolbar :-/
                 notebookCatalogWidget = createWidget(docmanager);
                 notebookCatalogWidget.title.label = catalogLabel;
-                notebookCatalogWidget.title.iconClass = catalogIconClass;
+                notebookCatalogWidget.title.iconClass = EDC_ICON_CLASS;
                 notebookCatalogWidget.title.closable = true;
                 app.shell.add(notebookCatalogWidget, "main");
             }
@@ -260,11 +274,54 @@ function activateCopyByRouter(
     });
 }
 
-export function parseCopyUrlParam(search: string): string | null {
+function parseCopyUrlParam(search: string): string | null {
     const urlParams = new URLSearchParams(search);
     const path = urlParams.get("copy");
     console.log("Parsed URL parameters:", urlParams.toString(), path);
     return path;
+}
+
+
+/**
+ * Add a context menu entry which triggers contributions
+ */
+function activateContribute(
+    app: JupyterFrontEnd<JupyterFrontEnd.IShell>,
+    docmanager: IDocumentManager,
+    factory: IFileBrowserFactory,
+) {
+    const contributeCommandId = "edc:contribute";
+    app.commands.addCommand(contributeCommandId, {
+        label: "EDC contribute",
+        iconClass: EDC_ICON_CLASS,
+        execute: () => {
+            const filebrowser: FileBrowser = factory.tracker.currentWidget;
+            if (!filebrowser) {
+                return;
+            }
+
+            const items = toArray(filebrowser.selectedItems());
+            console.log("Contribute items:", items);
+            if (items.length > 0) {
+                items.map((item: Contents.IModel) => {
+                    return docmanager.copy(item.path, CONTRIBUTE_STAGING_PATH);
+                });
+                // NOTE: we can't actually wait for the promises to resolve because
+                //       afterwards we're not in the click handler any more and then
+                //       we're not allowed to open tabs :(
+                // TODO: open according contribute page (dev/prod)
+                window.open("https://www.asdf.com");
+            }
+        }
+    })
+
+    // selector as from packages/filebrowser-extension/src/index.ts
+    const selectorNotDir = '.jp-DirListing-item[data-isdir="false"]';
+
+    app.contextMenu.addItem({
+        selector: selectorNotDir,
+        command: contributeCommandId,
+    });
 }
 
 
