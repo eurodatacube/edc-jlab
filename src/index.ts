@@ -297,16 +297,20 @@ function activateContribute(
             }
 
             const items = toArray(filebrowser.selectedItems());
-            console.log("Contribute items:", items);
+            console.log("Contribute items:", items.map(item => item.path).join(", "));
             if (items.length > 0) {
-                items.map((item: Contents.IModel) => {
+                const copyPromises = items.map((item: Contents.IModel) => {
                     return docmanager.copy(item.path, CONTRIBUTE_STAGING_PATH);
                 });
-                // NOTE: we can't actually wait for the promises to resolve because
-                //       afterwards we're not in the click handler any more and then
-                //       we're not allowed to open tabs :(
-                // TODO: open according contribute page (dev/prod)
-                window.open("https://www.asdf.com");
+
+                // need to open window right now in click handler, it's not allowed
+                // in promise handler.
+                const newTab = window.open("", "_blank");
+                Promise.all(copyPromises).then(() => {
+                    // TODO: open according contribute page (dev/prod)
+                    newTab.location.href =
+                        "https://eurodatacube.com/contributions/jupyter-notebook/new";
+                });
             }
         }
     })
