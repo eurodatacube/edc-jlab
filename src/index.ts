@@ -15,11 +15,10 @@ import {
     Dialog,
 } from '@jupyterlab/apputils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
-import { Widget } from '@lumino/widgets';
-
 import { IFileBrowserFactory, FileBrowser } from '@jupyterlab/filebrowser';
 import { Contents } from '@jupyterlab/services';
 import { toArray } from '@lumino/algorithm';
+import { Widget } from '@lumino/widgets';
 
 
 const SHARED_FOLDER = ".shared";
@@ -292,7 +291,7 @@ function activateContribute(
 ) {
     const contributeCommandId = "edc:contribute";
     app.commands.addCommand(contributeCommandId, {
-        label: "EDC contribute",
+        label: "EDC: Contribute Notebook",
         iconClass: EDC_ICON_CLASS,
         execute: () => {
             const filebrowser: FileBrowser = factory.tracker.currentWidget;
@@ -314,6 +313,9 @@ function activateContribute(
                     // TODO: open according contribute page (dev/prod)
                     newTab.location.href =
                         "https://eurodatacube.com/contributions/jupyter-notebook/new";
+                }).catch(() => {
+                    newTab.close();
+                    alert("Failed to contribute files.");
                 });
             }
         }
