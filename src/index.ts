@@ -39,13 +39,13 @@ const extension: JupyterFrontEndPlugin<void> = {
     id: 'edc-jlab',
     autoStart: true,
     requires: [ILauncher, IDocumentManager, IRouter, IFileBrowserFactory],
-        activate: (
-            app: JupyterFrontEnd,
-            launcher: ILauncher,
-            docmanager: IDocumentManager,
-            router: IRouter,
-            factory: IFileBrowserFactory
-        ) => {
+    activate: (
+        app: JupyterFrontEnd,
+        launcher: ILauncher,
+        docmanager: IDocumentManager,
+        router: IRouter,
+        factory: IFileBrowserFactory
+    ) => {
         activateNotebookCatalog(app, docmanager, launcher);
         activateCopyByRouter(app, docmanager, router);
         activateContribute(app, docmanager, factory);
@@ -281,6 +281,36 @@ function parseCopyUrlParam(search: string): string | null {
 }
 
 
+async function ensureStatingDirExists(contents: Contents.IManager): Promise<void> {
+    // We should check if the dir exists, but we the server doesn't allow accessing
+    // hidden files. However we can create it and check if the response is 409 conflict.
+    // Also, the API doesn't allow creating dirs, only untitled dirs which are later
+    // renamed.
+    console.log(`Trying to create ${CONTRIBUTE_STAGING_PATH}`)
+    const dir = await contents.newUntitled({ type: 'directory' })
+    try {
+        try {
+            await contents.rename(dir.name, CONTRIBUTE_STAGING_PATH);
+        } catch (error) {
+            if (error.response.status == 404) {
+                // this means success, lol. probably the server filters hidden dirs, so
+                // it doesn't find the dir it has renamed.
+                console.log("Created dir successfully");
+            } else {
+                throw error;
+            }
+        }
+    } catch (error) {
+        if (error.response.status == 409) { // CONFLICT
+            await contents.delete(dir.name);
+            console.log("Directory already exists");
+        } else {
+            throw error;
+        }
+    }
+}
+
+
 /**
  * Add a context menu entry which triggers contributions
  */
@@ -328,6 +358,8 @@ function activateContribute(
         selector: selectorNotDir,
         command: contributeCommandId,
     });
+
+    ensureStatingDirExists(docmanager.services.contents);
 }
 
 

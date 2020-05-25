@@ -19,6 +19,8 @@ So then to get started, you just need to `docker-compose up` and run nbviewer at
 
 ```
 docker-compose exec jupyter-user bash -c "cd /mnt && jlpm watch"
+# and in another shell
+docker-compose exec jupyter-user bash -c "cd /mnt && jupyter lab --watch"
 ```
 
 
