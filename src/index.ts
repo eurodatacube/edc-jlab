@@ -366,6 +366,7 @@ function activateContribute(
     app.contextMenu.addItem({
         selector: selectorNotDir,
         command: contributeCommandId,
+        rank: -1,
     });
 
     ensureStatingDirExists(docmanager.services.contents);
