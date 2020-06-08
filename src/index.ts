@@ -323,6 +323,14 @@ function activateContribute(
     app.commands.addCommand(contributeCommandId, {
         label: "EDC: Contribute Notebook",
         iconClass: EDC_ICON_CLASS,
+        isVisible: () => {
+            // NOTE: market place is currently restricted to 1 contributed file
+            const filebrowser: FileBrowser = factory.tracker.currentWidget;
+            if (!filebrowser) {
+                return false;
+            }
+            return toArray(filebrowser.selectedItems()).length === 1;
+        },
         execute: () => {
             const filebrowser: FileBrowser = factory.tracker.currentWidget;
             if (!filebrowser) {
@@ -341,8 +349,9 @@ function activateContribute(
                 const newTab = window.open("", "_blank");
                 Promise.all(copyPromises).then(() => {
                     // TODO: open according contribute page (dev/prod)
+                    // NOTE: market place is currently restricted to 1 contributed file
                     newTab.location.href =
-                        "https://eurodatacube.com/contributions/jupyter-notebook/new";
+                        `https://eurodatacube.com/contributions/jupyter-notebook/new/${items[0].path}`;
                 }).catch(() => {
                     newTab.close();
                     alert("Failed to contribute files.");
