@@ -345,7 +345,17 @@ function activateContribute(
             const items = toArray(filebrowser.selectedItems());
             console.log("Contribute items:", items.map(item => item.path).join(", "));
             if (items.length > 0) {
-                const copyPromises = items.map((item: Contents.IModel) => {
+                const copyPromises = items.map(async (item: Contents.IModel) => {
+                    // make sure to delete target first in case it's an update
+                    try {
+                        await docmanager.deleteFile(`${CONTRIBUTE_STAGING_PATH}/${item.name}`);
+                    } catch(error) {
+                        // 404 error is expected, everything else is bad
+                        if (error.response.status !== 404) {
+                            throw error;
+                        }
+                    }
+
                     return docmanager.copy(item.path, CONTRIBUTE_STAGING_PATH);
                 });
 
