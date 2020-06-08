@@ -329,7 +329,12 @@ function activateContribute(
             if (!filebrowser) {
                 return false;
             }
-            return toArray(filebrowser.selectedItems()).length === 1;
+            const files = toArray(filebrowser.selectedItems());
+            if (files.length !== 1) {
+                return false;
+            }
+            return files[0].type === 'notebook';
+
         },
         execute: () => {
             const filebrowser: FileBrowser = factory.tracker.currentWidget;
