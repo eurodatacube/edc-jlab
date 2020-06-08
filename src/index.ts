@@ -356,7 +356,7 @@ function activateContribute(
                     // TODO: open according contribute page (dev/prod)
                     // NOTE: market place is currently restricted to 1 contributed file
                     newTab.location.href =
-                        `https://eurodatacube.com/contributions/jupyter-notebook/new/${items[0].path}`;
+                        `https://eurodatacube.com/contributions/jupyter-notebook/new/${items[0].name}`;
                 }).catch(() => {
                     newTab.close();
                     alert("Failed to contribute files.");
