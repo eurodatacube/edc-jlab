@@ -18,6 +18,7 @@ import {
 } from "@jupyterlab/apputils";
 import { IDocumentManager } from "@jupyterlab/docmanager";
 import { IFileBrowserFactory, FileBrowser } from "@jupyterlab/filebrowser";
+import { IMainMenu } from "@jupyterlab/mainmenu";
 import { Contents } from "@jupyterlab/services";
 import { toArray } from "@lumino/algorithm";
 import { Widget } from "@lumino/widgets";
@@ -27,6 +28,8 @@ const SHARED_FOLDER = ".shared";
 const CONTRIBUTE_STAGING_PATH = ".contribute-staging";
 
 const EDC_ICON_CLASS = "notebook-catalog-icon";
+
+const EDC_LAUNCHER_CATEGORY = "Euro Data Cube";
 
 // NOTE: this is somewhat of a hack, but it works fine for prod, dev and local.
 //       we'd need to add some kind of instance-wide configuration to do this properly.
@@ -39,15 +42,23 @@ const NBVIEWER_IFRAME_URL =
 const extension: JupyterFrontEndPlugin<void> = {
   id: "edc-jlab",
   autoStart: true,
-  requires: [ILauncher, IDocumentManager, IRouter, IFileBrowserFactory],
+  requires: [
+    ILauncher,
+    IDocumentManager,
+    IRouter,
+    IFileBrowserFactory,
+    IMainMenu,
+  ],
   activate: (
     app: JupyterFrontEnd,
     launcher: ILauncher,
     docmanager: IDocumentManager,
     router: IRouter,
-    factory: IFileBrowserFactory
+    factory: IFileBrowserFactory,
+    mainMenu: IMainMenu
   ) => {
     activateNotebookCatalog(app, docmanager, launcher);
+    activateVersionLink(app, docmanager, mainMenu);
     activateCopyByRouter(app, docmanager, router);
     activateContribute(app, docmanager, factory);
 
@@ -239,10 +250,37 @@ function activateNotebookCatalog(
   });
 
   launcher.add({
-    category: "Euro Data Cube",
+    category: EDC_LAUNCHER_CATEGORY,
     command: catalogCommandName,
     rank: 0,
   });
+}
+
+function activateVersionLink(
+  app: JupyterFrontEnd<JupyterFrontEnd.IShell>,
+  docmanager: IDocumentManager,
+  mainMenu: IMainMenu
+) {
+  const kernelspecs = docmanager.services.kernelspecs.specs.kernelspecs;
+  // use "first" kernelspec
+  const kernelSpec = Object.values(kernelspecs).pop();
+  // use custom version info added to base images
+  const version = kernelSpec.metadata.version;
+
+  const versionLinkCommand = "edc:goto-version";
+
+  app.commands.addCommand(versionLinkCommand, {
+    label: `Python libraries in the ${kernelSpec.display_name} Kernel`,
+    iconClass: EDC_ICON_CLASS,
+    execute: () => {
+      window.open(
+        `https://github.com/eurodatacube/base-images/releases/tag/user-${version}`
+      );
+    },
+  });
+
+  // 21 is right below the official kernel info, which is 20
+  mainMenu.helpMenu.addGroup([{ command: versionLinkCommand }], 21);
 }
 
 /**
