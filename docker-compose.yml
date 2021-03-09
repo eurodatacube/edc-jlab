@@ -10,7 +10,7 @@ services:
         volumes:
         - .:/mnt
         - ./shared:/home/jovyan/.shared
-        command: ["bash", "-exc", "(cd /mnt && ./install_extension.sh) && bash /usr/local/bin/start-notebook.sh --watch"]
+        #command: ["bash", "-exc", "(cd /mnt && ./install_extension.sh) && bash /usr/local/bin/start-notebook.sh --watch"]
     nginx:
         image: nginx:1.17.8
         network_mode: host

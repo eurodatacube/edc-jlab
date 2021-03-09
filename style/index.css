@@ -4,34 +4,4 @@
  * Distributed under the terms of the MIT License.
  */
 
-.edc-toolbar {
-  height: auto !important;
-  padding: 10px;
-}
-
-.edc-toolbar button {
-  background-color: #004170 !important;
-  height: 40px;
-  padding: 0;
-}
-
-.edc-toolbar .bp3-button-text {
-  display: flex;
-  height: 100%;
-  align-items: center;
-  padding: 10px 16px;
-}
-
-.edc-toolbar .jp-ToolbarButtonComponent-icon {
-  color: #fff;
-  margin: 2px 4px 0 0;
-}
-
-.edc-toolbar .jp-ToolbarButtonComponent-label {
-  color: #fff !important;
-  font-size: 1rem !important;
-}
-
-.notebook-catalog-icon {
-   background-image: url('images/EDC_logo_square_blue.svg')
-}
+@import url('base.css');
