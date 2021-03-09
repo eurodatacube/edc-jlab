@@ -13,8 +13,8 @@
   },
   "license": "MIT",
   "author": {
-      "name": "Bernhard Mallinger",
-      "email": "bernhard.mallinger@eox.at"
+    "name": "Bernhard Mallinger",
+    "email": "bernhard.mallinger@eox.at"
   },
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
@@ -64,7 +64,12 @@
   ],
   "jupyterlab": {
     "extension": true,
-    "outputDir": "edc-jlab/labextension"
+    "outputDir": "edc-jlab/labextension",
+    "_build": {
+      "load": "static/remoteEntry.b95c0919a6de60bbaf4f.js",
+      "extension": "./extension",
+      "style": "./style"
+    }
   },
   "styleModule": "style/index.js"
 }

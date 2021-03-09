@@ -1,7 +1,8 @@
 version: "3.7"
 services:
     jupyter-user:
-        image: eurodatacube/jupyter-user:0.20.0
+        #image: eurodatacube/jupyter-user:0.20.0
+        image: eurodatacube/jupyter-user-base:t1
         environment:
         - JUPYTER_ENABLE_LAB=yes
         ports:
