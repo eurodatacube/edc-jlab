@@ -17,6 +17,7 @@ You'll need to configure your `/etc/hosts` to point to localhost:
 So then to get started, you just need to `docker-compose up` and run nbviewer at `localhost:8080`. For live-reload, you can run this:
 
 
+OUTDATED SINCE JUPYTERLAB 3
 ```
 docker-compose exec jupyter-user bash -c "cd /mnt && jlpm watch"
 # and in another shell
@@ -26,49 +27,25 @@ docker-compose exec jupyter-user bash -c "cd /mnt && jupyter lab --watch"
 
 ## Requirements
 
-* JupyterLab >= 2.0
+* JupyterLab >= 3.0
 
 ## Install
 
-```bash
-jupyter labextension install edc-jlab
+OUTDATED SINCE JUPYTERLAB 3
+
+## Development
+
+To develop the extension (there might be a way with fewer steps too):
+```
+cd /mnt
+conda deactivate
+python3 -m pip uninstall --yes edc-jlab
+jlpm  # install packages
+jlpm build  # compile
+jupyter labextension develop . --overwrite  # Install the current directory as an extension
 ```
 
-## Contributing
-
-### Install
-
-The `jlpm` command is JupyterLab's pinned version of
-[yarn](https://yarnpkg.com/) that is installed with JupyterLab. You may use
-`yarn` or `npm` in lieu of `jlpm` below.
-
-```bash
-# Clone the repo to your local environment
-# Move to edc-jlab directory
-# Install dependencies
-jlpm
-# Build Typescript source
-jlpm build
-# Link your development version of the extension with JupyterLab
-jupyter labextension link .
-# Rebuild Typescript source after making changes
-jlpm build
-# Rebuild JupyterLab after making any changes
-jupyter lab build
+After this, you can rebuild with:
 ```
-
-You can watch the source directory and run JupyterLab in watch mode to watch for changes in the extension's source and automatically rebuild the extension and application.
-
-```bash
-# Watch the source directory in another terminal tab
-jlpm watch
-# Run jupyterlab in watch mode in one terminal tab
-jupyter lab --watch
+jlpm  build
 ```
-
-### Uninstall
-
-```bash
-jupyter labextension uninstall edc-jlab
-```
-

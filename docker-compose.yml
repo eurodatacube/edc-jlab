@@ -1,8 +1,7 @@
 version: "3.7"
 services:
     jupyter-user:
-        #image: eurodatacube/jupyter-user:0.20.0
-        image: eurodatacube/jupyter-user-base:t1
+        image: eurodatacube/jupyter-user:0.23.2
         environment:
         - JUPYTER_ENABLE_LAB=yes
         ports:
@@ -10,7 +9,8 @@ services:
         volumes:
         - .:/mnt
         - ./shared:/home/jovyan/.shared
-        #command: ["bash", "-exc", "(cd /mnt && ./install_extension.sh) && bash /usr/local/bin/start-notebook.sh --watch"]
+        command: ["/usr/local/bin/start-notebook.sh", "--watch"]
+        #command: ["/usr/local/bin/start-notebook.sh", "--watch", "--ContentsManager.allow_hidden=True"]
     nginx:
         image: nginx:1.17.8
         network_mode: host
