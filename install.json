@@ -1,5 +1,5 @@
 {
   "packageManager": "python",
-  "packageName": "edc-jlab",
-  "uninstallInstructions": "Use your Python package manager (pip, conda, etc.) to uninstall the package edc-jlab"
+  "packageName": "edc_jlab",
+  "uninstallInstructions": "Use your Python package manager (pip, conda, etc.) to uninstall the package edc_jlab"
 }

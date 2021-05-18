@@ -1,14 +1,14 @@
 include LICENSE
 include README.md
 include pyproject.toml
-include jupyter-config/edc-jlab.json
+include jupyter-config/edc_jlab.json
 
 include package.json
 include install.json
 include ts*.json
 include yarn.lock
 
-graft edc-jlab/labextension
+graft edc_jlab/labextension
 
 # Javascript files
 graft src

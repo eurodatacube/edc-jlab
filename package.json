@@ -1,50 +1,54 @@
 {
   "name": "edc-jlab",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "description": "Jupyterlab extension for Euro Data Cube",
   "keywords": [
     "jupyter",
     "jupyterlab",
     "jupyterlab-extension"
   ],
-  "homepage": "https://github.com/eurodatacube/edc-jlab.git",
+  "homepage": "https://github.com/eurodatacube/edc-jlab",
   "bugs": {
-    "url": "https://github.com/eurodatacube/edc-jlab.git/issues"
+    "url": "https://github.com/eurodatacube/edc-jlab/issues"
   },
   "license": "MIT",
   "author": {
-      "name": "Bernhard Mallinger",
-      "email": "bernhard.mallinger@eox.at"
+    "name": "Bernhard Mallinger",
+    "email": "bernhard.mallinger@eox.at"
   },
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
-    "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}",
-    "style/index.js"
+    "style/**/*.{css,.js,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
   ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "style": "style/index.css",
   "repository": {
     "type": "git",
-    "url": "https://github.com/eurodatacube/edc-jlab.git.git"
+    "url": "https://github.com/eurodatacube/edc-jlab.git"
   },
   "scripts": {
     "build": "jlpm run build:lib && jlpm run build:labextension:dev",
-    "build:prod": "jlpm run build:lib && jlpm run build:labextension",
+    "build:prod": "jlpm run clean && jlpm run build:lib && jlpm run build:labextension",
     "build:labextension": "jupyter labextension build .",
     "build:labextension:dev": "jupyter labextension build --development True .",
     "build:lib": "tsc",
-    "clean": "rimraf lib tsconfig.tsbuildinfo",
-    "prepare": "jlpm run clean && jlpm run build",
-    "watch": "tsc -w"
+    "clean": "jlpm run clean:lib",
+    "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
+    "clean:labextension": "rimraf edc_jlab/labextension",
+    "clean:all": "jlpm run clean:lib && jlpm run clean:labextension",
+    "eslint": "eslint . --ext .ts,.tsx --fix",
+    "eslint:check": "eslint . --ext .ts,.tsx",
+    "install:extension": "jlpm run build",
+    "watch": "run-p watch:src watch:labextension",
+    "watch:src": "tsc -w",
+    "watch:labextension": "jupyter labextension watch ."
   },
   "dependencies": {
-    "@jupyterlab/application": "^3.0.6",
-    "@jupyterlab/apputils": "^3.0.5",
-    "@jupyterlab/docmanager": "^3.0.6",
-    "@jupyterlab/filebrowser": "^3.0.6",
-    "@jupyterlab/launcher": "^3.0.5",
-    "@jupyterlab/mainmenu": "^3.0.5"
+    "@jupyterlab/application": "^3.0.0",
+    "@jupyterlab/coreutils": "^5.0.0",
+    "@jupyterlab/services": "^6.0.0"
+
   },
   "devDependencies": {
     "@jupyterlab/builder": "^3.0.0",
@@ -52,7 +56,8 @@
     "@typescript-eslint/parser": "^4.8.1",
     "eslint": "^7.14.0",
     "eslint-config-prettier": "^6.15.0",
-    "eslint-plugin-prettier": "^3.1.4",
+    "eslint-plugin-prettier": "^3.1.4", 
+    "mkdirp": "^1.0.3", 
     "npm-run-all": "^4.1.5",
     "prettier": "^2.1.1",
     "rimraf": "^3.0.2",
@@ -62,9 +67,19 @@
     "style/*.css",
     "style/index.js"
   ],
-  "jupyterlab": {
+  "styleModule": "style/index.js",
+  "jupyterlab": { 
+    "discovery": {
+        "server": {
+          "managers": [
+            "pip"
+          ],
+          "base": {
+            "name": "edc_jlab"
+          }
+        }
+    }, 
     "extension": true,
-    "outputDir": "edc-jlab/labextension"
-  },
-  "styleModule": "style/index.js"
+    "outputDir": "edc_jlab/labextension"
+  }
 }

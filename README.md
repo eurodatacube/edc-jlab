@@ -1,28 +1,13 @@
-# edc-jlab
+# edc_jlab
 
-![Github Actions Status](https://github.com/eurodatacube/edc-jlab.git/workflows/Build/badge.svg)
+![Github Actions Status](https://github.com/eurodatacube/edc-jlab/workflows/Build/badge.svg)
 
-Jupyterlab extension for Euro Data Cube
-
-## Development
-
-edc-jlab integrates an instance of nbviewer, so for effective development, you need to somehow reference one.
-This repo includes an nginx config which sets up an nginx which reverse proxies `jupyter.myeox.at` to the local jupyter-user and `nbviewer.myeox.at` to the nbviewer.
-You'll need to configure your `/etc/hosts` to point to localhost:
-
-```
-127.0.0.1  jupyter.myeox.at nbviewer.myeox.at
-```
-
-So then to get started, you just need to `docker-compose up` and run nbviewer at `localhost:8080`. For live-reload, you can run this:
+Jupyterlab extension for EuroDataCube
 
 
-OUTDATED SINCE JUPYTERLAB 3
-```
-docker-compose exec jupyter-user bash -c "cd /mnt && jlpm watch"
-# and in another shell
-docker-compose exec jupyter-user bash -c "cd /mnt && jupyter lab --watch"
-```
+This extension is composed of a Python package named `edc_jlab`
+for the server extension and a NPM package named `edc-jlab`
+for the frontend extension.
 
 
 ## Requirements
@@ -31,21 +16,86 @@ docker-compose exec jupyter-user bash -c "cd /mnt && jupyter lab --watch"
 
 ## Install
 
-OUTDATED SINCE JUPYTERLAB 3
+To install the extension, execute:
 
-## Development
-
-To develop the extension (there might be a way with fewer steps too):
-```
-cd /mnt
-conda deactivate
-python3 -m pip uninstall --yes edc-jlab
-jlpm  # install packages
-jlpm build  # compile
-jupyter labextension develop . --overwrite  # Install the current directory as an extension
+```bash
+pip install edc_jlab
 ```
 
-After this, you can rebuild with:
+## Uninstall
+
+To remove the extension, execute:
+
+```bash
+pip uninstall edc_jlab
 ```
-jlpm  build
+
+
+## Troubleshoot
+
+If you are seeing the frontend extension, but it is not working, check
+that the server extension is enabled:
+
+```bash
+jupyter server extension list
 ```
+
+If the server extension is installed and enabled, but you are not seeing
+the frontend extension, check the frontend extension is installed:
+
+```bash
+jupyter labextension list
+```
+
+
+## Contributing
+
+### Development install
+
+Note: You will need NodeJS to build the extension package.
+
+The `jlpm` command is JupyterLab's pinned version of
+[yarn](https://yarnpkg.com/) that is installed with JupyterLab. You may use
+`yarn` or `npm` in lieu of `jlpm` below.
+
+```bash
+# Clone the repo to your local environment
+# Change directory to the edc_jlab directory
+# Install package in development mode
+pip install -e .
+# Link your development version of the extension with JupyterLab
+jupyter labextension develop . --overwrite
+# Server extension must be manually installed in develop mode
+jupyter server extension enable edc_jlab
+# Rebuild extension Typescript source after making changes
+jlpm run build
+```
+
+You can watch the source directory and run JupyterLab at the same time in different terminals to watch for changes in the extension's source and automatically rebuild the extension.
+
+```bash
+# Watch the source directory in one terminal, automatically rebuilding when needed
+jlpm run watch
+# Run JupyterLab in another terminal
+jupyter lab
+```
+
+With the watch command running, every saved change will immediately be built locally and available in your running JupyterLab. Refresh JupyterLab to load the change in your browser (you may need to wait several seconds for the extension to be rebuilt).
+
+By default, the `jlpm run build` command generates the source maps for this extension to make it easier to debug using the browser dev tools. To also generate source maps for the JupyterLab core extensions, you can run the following command:
+
+```bash
+jupyter lab build --minimize=False
+```
+
+### Development uninstall
+
+```bash
+# Server extension must be manually disabled in develop mode
+jupyter server extension disable edc_jlab
+pip uninstall edc_jlab
+```
+
+In development mode, you will also need to remove the symlink created by `jupyter labextension develop`
+command. To find its location, you can run `jupyter labextension list` to figure out where the `labextensions`
+folder is located. Then you can remove the symlink named `edc-jlab` within that folder.

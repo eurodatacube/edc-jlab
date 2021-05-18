@@ -1,56 +1,32 @@
 """
-edc-jlab setup
+edc_jlab setup
 """
 import json
 from pathlib import Path
 
-from jupyter_packaging import (
-    create_cmdclass,
-    install_npm,
-    ensure_targets,
-    combine_commands,
-    skip_if_exists
-)
 import setuptools
 
 HERE = Path(__file__).parent.resolve()
 
 # The name of the project
-name = "edc-jlab"
+name = "edc_jlab"
 
 lab_path = (HERE / name / "labextension")
 
 # Representative files that should exist after a successful build
-jstargets = [
+ensured_targets = [
     str(lab_path / "package.json"),
+    str(lab_path / "static/style.js")
 ]
-
-package_data_spec = {
-    name: ["*"],
-}
 
 labext_name = "edc-jlab"
 
 data_files_spec = [
     ("share/jupyter/labextensions/%s" % labext_name, str(lab_path), "**"),
-    ("share/jupyter/labextensions/%s" % labext_name, str(HERE), "install.json"),
+    ("share/jupyter/labextensions/%s" % labext_name, str(HERE), "install.json"),("etc/jupyter/jupyter_server_config.d",
+     "jupyter-config", "edc_jlab.json"),
+    
 ]
-
-cmdclass = create_cmdclass("jsdeps",
-    package_data_spec=package_data_spec,
-    data_files_spec=data_files_spec
-)
-
-js_command = combine_commands(
-    install_npm(HERE, build_cmd="build:prod", npm=["jlpm"]),
-    ensure_targets(jstargets),
-)
-
-is_repo = (HERE / ".git").exists()
-if is_repo:
-    cmdclass["jsdeps"] = js_command
-else:
-    cmdclass["jsdeps"] = skip_if_exists(jstargets, js_command)
 
 long_description = (HERE / "README.md").read_text()
 
@@ -67,10 +43,9 @@ setup_args = dict(
     license=pkg_json["license"],
     long_description=long_description,
     long_description_content_type="text/markdown",
-    cmdclass=cmdclass,
     packages=setuptools.find_packages(),
     install_requires=[
-        "jupyterlab~=3.0",
+        "jupyter_server>=1.6,<2"
     ],
     zip_safe=False,
     include_package_data=True,
@@ -89,6 +64,19 @@ setup_args = dict(
     ],
 )
 
+try:
+    from jupyter_packaging import (
+        wrap_installers,
+        npm_builder,
+        get_data_files
+    )
+    post_develop = npm_builder(
+        build_cmd="install:extension", source_dir="src", build_dir=lab_path
+    )
+    setup_args['cmdclass'] = wrap_installers(post_develop=post_develop, ensured_targets=ensured_targets)
+    setup_args['data_files'] = get_data_files(data_files_spec)
+except ImportError as e:
+    pass
 
 if __name__ == "__main__":
     setuptools.setup(**setup_args)
