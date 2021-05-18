@@ -22,8 +22,8 @@ import { IMainMenu } from "@jupyterlab/mainmenu";
 import { Contents } from "@jupyterlab/services";
 import { toArray } from "@lumino/algorithm";
 import { Widget } from "@lumino/widgets";
+import { requestAPI } from "./handler";
 
-const SHARED_FOLDER = ".shared";
 // TODO: setup these folders in user shares
 const CONTRIBUTE_STAGING_PATH = ".contribute-staging";
 
@@ -116,7 +116,7 @@ function createToolbar(docmanager: IDocumentManager) {
       tooltip: enabled
         ? "Execute notebook to home directory and open it"
         : "Select a notebook to execute",
-      onClick: () => deployNotebook(docmanager, currentNbPath),
+      onClick: () => deployNotebook(currentNbPath),
     });
     toolbar.addItem("copy", toolbarCopyButton);
   }
@@ -137,7 +137,6 @@ class HtmlLabelRenderer extends Dialog.Renderer {
  * Ask user about path and copies notebook there
  */
 async function deployNotebook(
-  docmanager: IDocumentManager,
   nbPath: string
 ): Promise<void> {
   // suggest just the filename since it doesn't seem easy to create directories here
@@ -160,7 +159,25 @@ async function deployNotebook(
       bailout = true;
     } else {
       const targetPath = res.value as string;
-      bailout = await copyNotebookTo(docmanager, nbPath, targetPath);
+      requestAPI<any>(
+        'install_notebook',
+        {
+          body: JSON.stringify({
+            nbPath: nbPath,
+            targetPath: targetPath,
+          }),
+          method: "POST",
+        },
+      ).then(data => {
+        console.log(data);
+      })
+        .catch(reason => {
+          console.error(
+            `The edc_jlab server extension appears to be missing.\n${reason}`
+          );
+        });
+      bailout = true;
+      // bailout = await copyNotebookTo(nbPath, targetPath);
       if (!bailout) {
         label = `<p><b>Saving failed: existing or wrong filename</b></p>
                 <p>If the file "${targetPath}" already exists, you can access it in the filebrowser on the left side of the screen.</p>
@@ -170,30 +187,7 @@ async function deployNotebook(
   }
 }
 
-/**
- * Downloads notebook to desired path
- */
-async function copyNotebookTo(
-  docmanager: IDocumentManager,
-  nbPath: string,
-  targetPath: string
-) {
-  // copy doesn't allow specifying a target filename, only a target dir
-  // rename however does support a directory move + new name, so we combine
-  // these operations.
-  console.log(
-    `Copy notebook "${nbPath}" from shared "${SHARED_FOLDER}" to "${targetPath}"`
-  );
-  const copyResult = await docmanager.copy(`${SHARED_FOLDER}/${nbPath}`, "");
-  try {
-    const renameResult = await docmanager.rename(copyResult.path, targetPath);
-    docmanager.open(renameResult.path);
-    return true;
-  } catch (ex) {
-    await docmanager.deleteFile(copyResult.path);
-    return false;
-  }
-}
+
 
 function createWidget(docmanager: IDocumentManager): MainAreaWidget<IFrame> {
   const iframe = new IFrame();
@@ -286,7 +280,7 @@ function activateVersionLink(
 /**
  * Enables copying files to the workspace by visiting the url:
  *
- * /lab?copy/my-notebook.ipynb
+ * /lab?copy=/my-notebook.ipynb
  *
  */
 function activateCopyByRouter(
@@ -305,7 +299,7 @@ function activateCopyByRouter(
       console.log("Copy notebook from args: ", args, args.search);
       const path = parseCopyUrlParam(args.search as string);
       if (path) {
-        return deployNotebook(docmanager, path);
+        return deployNotebook(path);
       }
     },
   });
