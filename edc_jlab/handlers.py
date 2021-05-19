@@ -1,10 +1,11 @@
-import json
-
 from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
 import tornado
 import requests
+import json
 from pathlib import Path
+import os
+
 
 class InstallNotebookHandler(APIHandler):
     # The following decorator should be present on all verb methods (head, get, post,
@@ -13,8 +14,8 @@ class InstallNotebookHandler(APIHandler):
     @tornado.web.authenticated
     def post(self):
         body = self.get_json_body()
-        notebook_path = body['nbPath']
-        target_path = body['targetPath']
+        notebook_path = body["nbPath"]
+        target_path = body["targetPath"]
 
         NBVIEWER_BASE_URL = "https://nbviewer.dev.hub.eox.at/notebooks/eurodatacube/"
 
@@ -40,10 +41,30 @@ class InstallNotebookHandler(APIHandler):
             )
 
 
+class CatalogHandler(APIHandler):
+    @tornado.web.authenticated
+    def get(self):
+        # NOTE: the catalog depends on the user profile, which is stored in an env var
+        # as by our kubespawner config
+        self.finish(
+            {
+                "name": os.environ["CATALOG_NAME"],
+                "url": os.environ["CATALOG_URL"],
+            }
+        )
+
+
 def setup_handlers(web_app):
     host_pattern = ".*$"
 
     base_url = web_app.settings["base_url"]
-    route_pattern = url_path_join(base_url, "edc_jlab", "install_notebook")
-    handlers = [(route_pattern, InstallNotebookHandler)]
+
+    endpoints = [
+        ("install_notebook", InstallNotebookHandler),
+        ("catalog", CatalogHandler),
+    ]
+    handlers = [
+        (url_path_join(base_url, "edc_jlab", endpoint), handler)
+        for endpoint, handler in endpoints
+    ]
     web_app.add_handlers(host_pattern, handlers)

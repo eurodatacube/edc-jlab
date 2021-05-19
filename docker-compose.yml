@@ -4,6 +4,8 @@ services:
         image: eurodatacube/jupyter-user:0.24.5
         environment:
         - JUPYTER_ENABLE_LAB=yes
+        - CATALOG_NAME=Test Contest
+        - CATALOG_URL=https://nbviewer.hub.eox.at/notebooks
         ports:
         - 8888:8888
         volumes:

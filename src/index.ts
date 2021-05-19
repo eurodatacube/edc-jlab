@@ -29,12 +29,6 @@ const CONTRIBUTE_STAGING_PATH = ".contribute-staging";
 
 const EDC_ICON_CLASS = "notebook-catalog-icon";
 
-const EDC_LAUNCHER_CATEGORY = "Euro Data Cube";
-
-// NOTE: this is somewhat of a hack, but it works fine for prod, dev and local.
-//       we'd need to add some kind of instance-wide configuration to do this properly.
-const NBVIEWER_IFRAME_URL =
-  document.location.origin.replace("jupyter", "nbviewer") + "/notebooks";
 
 /**
  * Initialization data for the edc-jlab extension.
@@ -49,7 +43,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     IFileBrowserFactory,
     IMainMenu,
   ],
-  activate: (
+  activate: async (
     app: JupyterFrontEnd,
     launcher: ILauncher,
     docmanager: IDocumentManager,
@@ -57,7 +51,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     factory: IFileBrowserFactory,
     mainMenu: IMainMenu
   ) => {
-    activateNotebookCatalog(app, docmanager, launcher);
+    await activateNotebookCatalog(app, launcher);
     activateVersionLink(app, docmanager, mainMenu);
     activateCopyByRouter(app, docmanager, router);
     activateContribute(app, docmanager, factory);
@@ -97,7 +91,7 @@ function isNotebookFile(nbPath: string): boolean {
   return nbPath.endsWith(".ipynb");
 }
 
-function createToolbar(docmanager: IDocumentManager) {
+function createToolbar() {
   const toolbar = new Toolbar();
   toolbar.addClass("edc-toolbar");
   let toolbarCopyButton: ToolbarButton | null = null;
@@ -189,11 +183,11 @@ async function deployNotebook(
 
 
 
-function createWidget(docmanager: IDocumentManager): MainAreaWidget<IFrame> {
+function createWidget(catalog_url: string): MainAreaWidget<IFrame> {
   const iframe = new IFrame();
-  iframe.url = NBVIEWER_IFRAME_URL;
+  iframe.url = catalog_url;
 
-  const { toolbar, refreshToolbar } = createToolbar(docmanager);
+  const { toolbar, refreshToolbar } = createToolbar();
 
   const iframeDomElem = iframe.node.querySelector("iframe");
   iframeDomElem.addEventListener("load", (event: Event) => {
@@ -216,37 +210,44 @@ function createWidget(docmanager: IDocumentManager): MainAreaWidget<IFrame> {
  * Add a notebook catalog accessible via launcher icon. Shows notebooks in an own
  * tab with an nbviewer iframe and a copy button.
  */
-function activateNotebookCatalog(
+async function activateNotebookCatalog(
   app: JupyterFrontEnd<JupyterFrontEnd.IShell>,
-  docmanager: IDocumentManager,
   launcher: ILauncher
 ) {
-  const catalogCommandName = "edc:notebook_catalog";
-  const catalogLabel = "EDC Notebook Catalog";
+  const {name: catalog_name, url: catalog_url} = await requestAPI<any>('catalog')
 
-  let notebookCatalogWidget: MainAreaWidget<IFrame> = null;
-
-  app.commands.addCommand(catalogCommandName, {
-    label: catalogLabel,
-    iconClass: EDC_ICON_CLASS,
-    execute: () => {
-      if (!notebookCatalogWidget || !notebookCatalogWidget.isAttached) {
-        // it would be nicer to keep the widget instance, but it seems that
-        // detaching destroys the layout object of the toolbar :-/
-        notebookCatalogWidget = createWidget(docmanager);
-        notebookCatalogWidget.title.label = catalogLabel;
-        notebookCatalogWidget.title.iconClass = EDC_ICON_CLASS;
-        notebookCatalogWidget.title.closable = true;
-        app.shell.add(notebookCatalogWidget, "main");
-      }
-      app.shell.activateById(notebookCatalogWidget.id);
-    },
-  });
+  function createCommand(name: string, url: string): string {
+    let notebookCatalogWidget: MainAreaWidget<IFrame> = null;
+    const catalogCommandName = `edc:notebook_catalog_${name}`;
+    const label = `${name}: ${catalog_name}`
+    app.commands.addCommand(catalogCommandName, {
+      label,
+      iconClass: EDC_ICON_CLASS,
+      execute: () => {
+        if (!notebookCatalogWidget || !notebookCatalogWidget.isAttached) {
+          // it would be nicer to keep the widget instance, but it seems that
+          // detaching destroys the layout object of the toolbar :-/
+          notebookCatalogWidget = createWidget(url);
+          notebookCatalogWidget.title.label = label;
+          notebookCatalogWidget.title.iconClass = EDC_ICON_CLASS;
+          notebookCatalogWidget.title.closable = true;
+          app.shell.add(notebookCatalogWidget, "main");
+        }
+        app.shell.activateById(notebookCatalogWidget.id);
+      },
+    });
+    return catalogCommandName;
+  }
 
   launcher.add({
-    category: EDC_LAUNCHER_CATEGORY,
-    command: catalogCommandName,
+    category: catalog_name,
+    command: createCommand("Readme", `${catalog_url}/README.ipynb`),
     rank: 0,
+  });
+  launcher.add({
+    category: catalog_name,
+    command: createCommand("Catalog", catalog_url),
+    rank: 1,
   });
 }
 
