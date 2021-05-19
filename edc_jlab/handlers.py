@@ -7,6 +7,10 @@ from pathlib import Path
 import os
 
 
+CATALOG_NAME = os.environ["CATALOG_NAME"]
+CATALOG_URL = os.environ["CATALOG_URL"]
+
+
 class InstallNotebookHandler(APIHandler):
     # The following decorator should be present on all verb methods (head, get, post,
     # patch, put, delete, options) to ensure only authorized user can request the
@@ -17,9 +21,9 @@ class InstallNotebookHandler(APIHandler):
         notebook_path = body["nbPath"]
         target_path = body["targetPath"]
 
-        NBVIEWER_BASE_URL = "https://nbviewer.dev.hub.eox.at/notebooks/eurodatacube/"
+        self.log.info(f"Deploying {notebook_path} to {target_path}")
 
-        notebook_download_url = f"{NBVIEWER_BASE_URL}/{notebook_path}?download"
+        notebook_download_url = f"{CATALOG_URL}/{notebook_path}?download"
         response = requests.get(notebook_download_url)
         response.raise_for_status()
         nb_bytes = response.content
@@ -27,18 +31,13 @@ class InstallNotebookHandler(APIHandler):
         target_path: Path = Path("/home/jovyan") / target_path
         if target_path.exists():
             self.set_status(409)
+            self.log.info("Target file already exists")
             self.finish("Target file already exists")
         else:
 
             target_path.write_bytes(nb_bytes)
 
-            self.finish(
-                json.dumps(
-                    {
-                        "data": body,  # "This is /edc_jlab/get_example endpoint!"
-                    }
-                )
-            )
+            self.finish()
 
 
 class CatalogHandler(APIHandler):
@@ -48,8 +47,8 @@ class CatalogHandler(APIHandler):
         # as by our kubespawner config
         self.finish(
             {
-                "name": os.environ["CATALOG_NAME"],
-                "url": os.environ["CATALOG_URL"],
+                "name": CATALOG_NAME,
+                "url": CATALOG_URL,
             }
         )
 

@@ -153,25 +153,26 @@ async function deployNotebook(
       bailout = true;
     } else {
       const targetPath = res.value as string;
-      requestAPI<any>(
-        'install_notebook',
-        {
-          body: JSON.stringify({
-            nbPath: nbPath,
-            targetPath: targetPath,
-          }),
-          method: "POST",
-        },
-      ).then(data => {
-        console.log(data);
-      })
-        .catch(reason => {
-          console.error(
-            `The edc_jlab server extension appears to be missing.\n${reason}`
-          );
-        });
-      bailout = true;
-      // bailout = await copyNotebookTo(nbPath, targetPath);
+      try {
+        await requestAPI<any>(
+          'install_notebook',
+          {
+            body: JSON.stringify({
+              nbPath: nbPath,
+              targetPath: targetPath,
+            }),
+            method: "POST",
+          },
+        )
+        bailout = true;
+      } catch (e) {
+        console.log("error:", e)
+        if (e.response && e.response.status === 409) {
+          // ok, file exists
+        } else {
+          throw e;
+        }
+      }
       if (!bailout) {
         label = `<p><b>Saving failed: existing or wrong filename</b></p>
                 <p>If the file "${targetPath}" already exists, you can access it in the filebrowser on the left side of the screen.</p>
@@ -214,12 +215,13 @@ async function activateNotebookCatalog(
   app: JupyterFrontEnd<JupyterFrontEnd.IShell>,
   launcher: ILauncher
 ) {
-  const {name: catalog_name, url: catalog_url} = await requestAPI<any>('catalog')
+  const category = "EOxHub"
+  const { name: catalog_name, url: catalog_url } = await requestAPI<any>('catalog')
 
   function createCommand(name: string, url: string): string {
     let notebookCatalogWidget: MainAreaWidget<IFrame> = null;
     const catalogCommandName = `edc:notebook_catalog_${name}`;
-    const label = `${name}: ${catalog_name}`
+    const label = `${catalog_name} ${name}`
     app.commands.addCommand(catalogCommandName, {
       label,
       iconClass: EDC_ICON_CLASS,
@@ -240,12 +242,12 @@ async function activateNotebookCatalog(
   }
 
   launcher.add({
-    category: catalog_name,
+    category,
     command: createCommand("Readme", `${catalog_url}/README.ipynb`),
     rank: 0,
   });
   launcher.add({
-    category: catalog_name,
+    category,
     command: createCommand("Catalog", catalog_url),
     rank: 1,
   });
