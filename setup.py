@@ -23,9 +23,9 @@ labext_name = "edc-jlab"
 
 data_files_spec = [
     ("share/jupyter/labextensions/%s" % labext_name, str(lab_path), "**"),
-    ("share/jupyter/labextensions/%s" % labext_name, str(HERE), "install.json"),("etc/jupyter/jupyter_server_config.d",
-     "jupyter-config", "edc_jlab.json"),
-    
+    ("share/jupyter/labextensions/%s" % labext_name, str(HERE), "install.json"),
+    ("etc/jupyter/jupyter_server_config.d", "jupyter-config/jupyter_server_config.d", "edc_jlab.json"),
+    ("etc/jupyter/jupyter_notebook_config.d", "jupyter-config/jupyter_notebook_config.d", "edc_jlab.json"),
 ]
 
 long_description = (HERE / "README.md").read_text()
