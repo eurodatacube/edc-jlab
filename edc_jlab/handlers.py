@@ -32,7 +32,7 @@ class InstallNotebookHandler(APIHandler):
         if target_path.exists():
             self.set_status(409)
             self.log.info("Target file already exists")
-            self.finish("Target file already exists")
+            self.finish(json.dumps({"message":"Target file already exists"}))
         else:
 
             target_path.write_bytes(nb_bytes)

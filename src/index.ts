@@ -51,7 +51,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     factory: IFileBrowserFactory,
     mainMenu: IMainMenu
   ) => {
-    await activateNotebookCatalog(app, launcher);
+    await activateNotebookCatalog(app, docmanager, launcher);
     activateVersionLink(app, docmanager, mainMenu);
     activateCopyByRouter(app, docmanager, router);
     activateContribute(app, docmanager, factory);
@@ -91,7 +91,7 @@ function isNotebookFile(nbPath: string): boolean {
   return nbPath.endsWith(".ipynb");
 }
 
-function createToolbar() {
+function createToolbar(docmanager: IDocumentManager) {
   const toolbar = new Toolbar();
   toolbar.addClass("edc-toolbar");
   let toolbarCopyButton: ToolbarButton | null = null;
@@ -110,7 +110,7 @@ function createToolbar() {
       tooltip: enabled
         ? "Execute notebook to home directory and open it"
         : "Select a notebook to execute",
-      onClick: () => deployNotebook(currentNbPath),
+      onClick: () => deployNotebook(docmanager, currentNbPath),
     });
     toolbar.addItem("copy", toolbarCopyButton);
   }
@@ -131,6 +131,7 @@ class HtmlLabelRenderer extends Dialog.Renderer {
  * Ask user about path and copies notebook there
  */
 async function deployNotebook(
+  docmanager: IDocumentManager,
   nbPath: string
 ): Promise<void> {
   // suggest just the filename since it doesn't seem easy to create directories here
@@ -164,6 +165,7 @@ async function deployNotebook(
             method: "POST",
           },
         )
+        docmanager.open(targetPath);
         bailout = true;
       } catch (e) {
         console.log("error:", e)
@@ -184,11 +186,11 @@ async function deployNotebook(
 
 
 
-function createWidget(catalog_url: string): MainAreaWidget<IFrame> {
+function createWidget(docmanager: IDocumentManager, catalog_url: string): MainAreaWidget<IFrame> {
   const iframe = new IFrame();
   iframe.url = catalog_url;
 
-  const { toolbar, refreshToolbar } = createToolbar();
+  const { toolbar, refreshToolbar } = createToolbar(docmanager);
 
   const iframeDomElem = iframe.node.querySelector("iframe");
   iframeDomElem.addEventListener("load", (event: Event) => {
@@ -213,6 +215,7 @@ function createWidget(catalog_url: string): MainAreaWidget<IFrame> {
  */
 async function activateNotebookCatalog(
   app: JupyterFrontEnd<JupyterFrontEnd.IShell>,
+  docmanager: IDocumentManager,
   launcher: ILauncher
 ) {
   const category = "EOxHub"
@@ -229,7 +232,7 @@ async function activateNotebookCatalog(
         if (!notebookCatalogWidget || !notebookCatalogWidget.isAttached) {
           // it would be nicer to keep the widget instance, but it seems that
           // detaching destroys the layout object of the toolbar :-/
-          notebookCatalogWidget = createWidget(url);
+          notebookCatalogWidget = createWidget(docmanager, url);
           notebookCatalogWidget.title.label = label;
           notebookCatalogWidget.title.iconClass = EDC_ICON_CLASS;
           notebookCatalogWidget.title.closable = true;
@@ -302,7 +305,7 @@ function activateCopyByRouter(
       console.log("Copy notebook from args: ", args, args.search);
       const path = parseCopyUrlParam(args.search as string);
       if (path) {
-        return deployNotebook(path);
+        return deployNotebook(docmanager, path);
       }
     },
   });
