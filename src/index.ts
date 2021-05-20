@@ -313,9 +313,14 @@ function activateCopyByRouter(
 
 function parseCopyUrlParam(search: string): string | null {
   const urlParams = new URLSearchParams(search);
-  const path = urlParams.get("copy");
-  console.log("Parsed URL parameters:", urlParams.toString(), path);
-  return path;
+  if (urlParams.has("reset")) {
+    console.log("Url is being reset, not triggering copy");
+    return null;
+  } else {
+    const path = urlParams.get("copy");
+    console.log("Parsed URL parameters:", urlParams.toString(), path);
+    return path;
+  }
 }
 
 async function ensureStatingDirExists(
