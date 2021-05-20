@@ -4,8 +4,10 @@ services:
         image: eurodatacube/jupyter-user:0.24.5
         environment:
         - JUPYTER_ENABLE_LAB=yes
-        - CATALOG_NAME=Hackathon
-        - CATALOG_URL=https://nbviewer.hub.eox.at/notebooks
+        #- CATALOG_NAME=eurodatacube
+        #- CATALOG_URL=https://nbviewer.dev.hub.eox.at/notebooks
+        - CATALOG_NAME=test-contest
+        - CATALOG_URL=https://test-contest-nbviewer.dev.hub.eox.at/notebooks
         ports:
         - 8888:8888
         volumes:

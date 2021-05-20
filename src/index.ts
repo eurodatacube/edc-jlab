@@ -246,7 +246,7 @@ async function activateNotebookCatalog(
 
   launcher.add({
     category,
-    command: createCommand("Readme", `${catalog_url}/README.ipynb`),
+    command: createCommand("Readme", `${catalog_url}/${catalog_name}/notebooks/README.ipynb`),
     rank: 0,
   });
   launcher.add({
