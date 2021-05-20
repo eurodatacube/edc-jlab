@@ -5,6 +5,7 @@ import requests
 import json
 from pathlib import Path
 import os
+import urllib.parse
 
 
 CATALOG_NAME = os.environ["CATALOG_NAME"]
@@ -23,8 +24,12 @@ class InstallNotebookHandler(APIHandler):
 
         self.log.info(f"Deploying {notebook_path} to {target_path}")
 
-        notebook_download_url = f"{CATALOG_URL}/{notebook_path}?download"
-        response = requests.get(notebook_download_url)
+        # NOTE: `notebook_path` is usually an absolute path /notebook/foo/bar.ipynb
+        #       `CATALOG_URL` usually is nbviewer.a.com/notebooks
+        #       the target is supposed to be nbviewer.a.com/notebooks/foo/bar.ipynb
+        #       see also the comment in index.ts:getNotebookUrlFromIFrameEvent
+        nb_download_url = urllib.parse.urljoin(CATALOG_URL, f"{notebook_path}?download")
+        response = requests.get(nb_download_url)
         response.raise_for_status()
         nb_bytes = response.content
 
@@ -32,7 +37,7 @@ class InstallNotebookHandler(APIHandler):
         if target_path.exists():
             self.set_status(409)
             self.log.info("Target file already exists")
-            self.finish(json.dumps({"message":"Target file already exists"}))
+            self.finish(json.dumps({"message": "Target file already exists"}))
         else:
 
             target_path.write_bytes(nb_bytes)
