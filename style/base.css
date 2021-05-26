@@ -33,5 +33,25 @@
 }
 
 .notebook-catalog-icon {
-   background-image: url('images/EDC_logo_square_blue.svg')
+   background-image: url('images/EDC_logo_square_blue.svg');
+}
+
+
+/* we need this more specific selector because the section icon is the first command icon,
+ * which we don't want */
+.jp-LauncherCard-icon .readme-icon {
+    /* actual readme */
+    background-image: url('https://cockpit.hub.eox.at/storage/uploads/eoxhub/readme.svg');
+    background-size: contain;
+}
+
+.jp-Launcher-sectionHeader .readme-icon {
+    /* section header, not readme */
+    background-image: url('images/EDC_logo_square_blue.svg');
+}
+
+.catalog-icon {
+    /* catalog is not used as section header, so no tricks here */
+    background-image: url('https://cockpit.hub.eox.at/storage/uploads/eoxhub/catalog.svg');
+    background-size: contain;
 }

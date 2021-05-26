@@ -27,7 +27,7 @@ import { requestAPI } from "./handler";
 // TODO: setup these folders in user shares
 const CONTRIBUTE_STAGING_PATH = ".contribute-staging";
 
-const EDC_ICON_CLASS = "notebook-catalog-icon";
+const NOTEBOOK_ICON_CLASS = "notebook-catalog-icon";
 
 
 /**
@@ -221,20 +221,20 @@ async function activateNotebookCatalog(
   const category = "EOxHub"
   const { name: catalog_name, url: catalog_url } = await requestAPI<any>('catalog')
 
-  function createCommand(name: string, url: string): string {
+  function createCommand(name: string, url: string, iconClass: string): string {
     let notebookCatalogWidget: MainAreaWidget<IFrame> = null;
     const catalogCommandName = `edc:notebook_catalog_${name}`;
-    const label = `${catalog_name} ${name}`
+    const label = catalog_name;
     app.commands.addCommand(catalogCommandName, {
       label,
-      iconClass: EDC_ICON_CLASS,
+      iconClass,
       execute: () => {
         if (!notebookCatalogWidget || !notebookCatalogWidget.isAttached) {
           // it would be nicer to keep the widget instance, but it seems that
           // detaching destroys the layout object of the toolbar :-/
           notebookCatalogWidget = createWidget(docmanager, url);
           notebookCatalogWidget.title.label = label;
-          notebookCatalogWidget.title.iconClass = EDC_ICON_CLASS;
+          notebookCatalogWidget.title.iconClass = iconClass;
           notebookCatalogWidget.title.closable = true;
           app.shell.add(notebookCatalogWidget, "main");
         }
@@ -246,12 +246,12 @@ async function activateNotebookCatalog(
 
   launcher.add({
     category,
-    command: createCommand("Readme", `${catalog_url}/${catalog_name}/notebooks/README.ipynb`),
+    command: createCommand("Readme", `${catalog_url}/${catalog_name}/notebooks/README.ipynb`, "readme-icon"),
     rank: 0,
   });
   launcher.add({
     category,
-    command: createCommand("Catalog", catalog_url),
+    command: createCommand("Catalog", catalog_url, "catalog-icon"),
     rank: 1,
   });
 }
@@ -271,7 +271,7 @@ function activateVersionLink(
 
   app.commands.addCommand(versionLinkCommand, {
     label: `Python libraries in the ${kernelSpec.display_name} Kernel`,
-    iconClass: EDC_ICON_CLASS,
+    iconClass: NOTEBOOK_ICON_CLASS,
     execute: () => {
       window.open(
         `https://github.com/eurodatacube/base-images/releases/tag/user-${version}`
@@ -366,7 +366,7 @@ function activateContribute(
   const contributeCommandId = "edc:contribute";
   app.commands.addCommand(contributeCommandId, {
     label: "EDC: Contribute Notebook",
-    iconClass: EDC_ICON_CLASS,
+    iconClass: NOTEBOOK_ICON_CLASS,
     isVisible: () => {
       // NOTE: market place is currently restricted to 1 contributed file
       const filebrowser: FileBrowser = factory.tracker.currentWidget;
