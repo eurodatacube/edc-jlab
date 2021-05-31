@@ -154,12 +154,14 @@ function createWidget(docmanager: IDocumentManager, catalogUrl: string): MainAre
  * Add a notebook catalog accessible via launcher icon. Shows notebooks in an own
  * tab with an nbviewer iframe and a copy button.
  */
-export async function activateNotebookCatalog(
+export function activateNotebookCatalog(
   app: JupyterFrontEnd<JupyterFrontEnd.IShell>,
   docmanager: IDocumentManager,
-  launcher: ILauncher) {
+  launcher: ILauncher,
+  catalogName: string,
+  catalogUrl: string,
+) {
   const category = "EOxHub";
-  const { name: catalogName, url: catalogUrl } = await requestAPI<any>('catalog');
 
   function createCommand(id: string, label: string, url: string, iconClass: string): string {
     let notebookCatalogWidget: MainAreaWidget<IFrame> = null;

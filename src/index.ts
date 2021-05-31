@@ -16,6 +16,8 @@ import { activateVersionLink } from "./versionLink";
 import { activateContribute } from "./contribute";
 import { activateNotebookCatalog } from "./notebookCatalog";
 import { activateCopyByRouter } from "./copyByRouter";
+import { activateContestSubmit } from "./contestSubmit";
+import { requestAPI } from "./handler";
 
 
 
@@ -40,10 +42,14 @@ const extension: JupyterFrontEndPlugin<void> = {
     factory: IFileBrowserFactory,
     mainMenu: IMainMenu
   ) => {
-    await activateNotebookCatalog(app, docmanager, launcher);
+
+    const { name: catalogName, url: catalogUrl } = await requestAPI<any>('catalog');
+    activateNotebookCatalog(app, docmanager, launcher, catalogName, catalogUrl);
     activateVersionLink(app, docmanager, mainMenu);
     activateCopyByRouter(app, docmanager, router);
     activateContribute(app, docmanager, factory);
+    activateContestSubmit(app, factory, catalogName);
+
 
     // we set the domain to the last 2 domain parts to be able to communicate with
     // the child frame
