@@ -29,6 +29,8 @@ const CONTRIBUTE_STAGING_PATH = ".contribute-staging";
 
 const NOTEBOOK_ICON_CLASS = "notebook-catalog-icon";
 
+const EURODATACUBE_CATALOG = "eurodatacube";
+
 
 /**
  * Initialization data for the edc-jlab extension.
@@ -221,10 +223,9 @@ async function activateNotebookCatalog(
   const category = "EOxHub"
   const { name: catalogName, url: catalogUrl } = await requestAPI<any>('catalog')
 
-  function createCommand(name: string, url: string, iconClass: string): string {
+  function createCommand(id: string, label: string, url: string, iconClass: string): string {
     let notebookCatalogWidget: MainAreaWidget<IFrame> = null;
-    const catalogCommandName = `edc:notebook_catalog_${name}`;
-    const label = catalogName;
+    const catalogCommandName = `edc:notebook_catalog_${id}`;
     app.commands.addCommand(catalogCommandName, {
       label,
       iconClass,
@@ -244,17 +245,25 @@ async function activateNotebookCatalog(
     return catalogCommandName;
   }
 
-  const contestNotebooksBaseUrl = `${catalogUrl}/${catalogName}/notebooks`;
+  const catalogNotebooksBaseUrl = `${catalogUrl}/${catalogName}/notebooks`;
   launcher.add({
     category,
-    command: createCommand("readme", `${contestNotebooksBaseUrl}/README.ipynb`, "readme-icon"),
+    command: createCommand("readme", catalogName, `${catalogNotebooksBaseUrl}/README.ipynb`, "readme-icon"),
     rank: 0,
   });
   launcher.add({
     category,
-    command: createCommand("catalog", contestNotebooksBaseUrl, "catalog-icon"),
+    command: createCommand("catalog", catalogName, catalogNotebooksBaseUrl, "catalog-icon"),
     rank: 1,
   });
+  if (catalogName != EURODATACUBE_CATALOG) {
+    launcher.add({
+      category,
+      command: createCommand("eurodatacube", EURODATACUBE_CATALOG, `${catalogUrl}/${EURODATACUBE_CATALOG}/notebooks`, "catalog-icon"),
+      rank: 2,
+    });
+
+  }
 }
 
 function activateVersionLink(
