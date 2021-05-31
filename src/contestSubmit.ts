@@ -59,7 +59,6 @@ export function activateContestSubmit(
         rank: 9, // about at the end of file-operations
     });
 
-
     async function doSubmit(path: string) {
         try {
             await requestAPI<any>(

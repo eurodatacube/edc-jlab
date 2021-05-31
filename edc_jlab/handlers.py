@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import os
 import urllib.parse
+import shutil
 
 
 CATALOG_NAME = os.environ["CATALOG_NAME"]
@@ -58,6 +59,23 @@ class CatalogHandler(APIHandler):
         )
 
 
+class ContestSubmitHandler(APIHandler):
+    @tornado.web.authenticated
+    def post(self):
+        relative_dir_path = self.get_json_body()["directory"]
+
+        self.log.info(f"Contest submission {relative_dir_path}")
+        shutil.copytree(
+            Path("/home/jovyan") / relative_dir_path,
+            "/mnt/contest-submit",
+            dirs_exist_ok=True,  # user can override their own submissions
+        )
+
+        # TODO: notify someone somewhere?
+
+        self.finish()
+
+
 def setup_handlers(web_app):
     host_pattern = ".*$"
 
@@ -66,6 +84,7 @@ def setup_handlers(web_app):
     endpoints = [
         ("install_notebook", InstallNotebookHandler),
         ("catalog", CatalogHandler),
+        ("contest_submit", ContestSubmitHandler),
     ]
     handlers = [
         (url_path_join(base_url, "edc_jlab", endpoint), handler)
