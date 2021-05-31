@@ -186,9 +186,9 @@ async function deployNotebook(
 
 
 
-function createWidget(docmanager: IDocumentManager, catalog_url: string): MainAreaWidget<IFrame> {
+function createWidget(docmanager: IDocumentManager, catalogUrl: string): MainAreaWidget<IFrame> {
   const iframe = new IFrame();
-  iframe.url = catalog_url;
+  iframe.url = catalogUrl;
 
   const { toolbar, refreshToolbar } = createToolbar(docmanager);
 
@@ -219,12 +219,12 @@ async function activateNotebookCatalog(
   launcher: ILauncher
 ) {
   const category = "EOxHub"
-  const { name: catalog_name, url: catalog_url } = await requestAPI<any>('catalog')
+  const { name: catalogName, url: catalogUrl } = await requestAPI<any>('catalog')
 
   function createCommand(name: string, url: string, iconClass: string): string {
     let notebookCatalogWidget: MainAreaWidget<IFrame> = null;
     const catalogCommandName = `edc:notebook_catalog_${name}`;
-    const label = catalog_name;
+    const label = catalogName;
     app.commands.addCommand(catalogCommandName, {
       label,
       iconClass,
@@ -244,7 +244,7 @@ async function activateNotebookCatalog(
     return catalogCommandName;
   }
 
-  const contestNotebooksBaseUrl = `${catalog_url}/${catalog_name}/notebooks`;
+  const contestNotebooksBaseUrl = `${catalogUrl}/${catalogName}/notebooks`;
   launcher.add({
     category,
     command: createCommand("readme", `${contestNotebooksBaseUrl}/README.ipynb`, "readme-icon"),
