@@ -244,14 +244,15 @@ async function activateNotebookCatalog(
     return catalogCommandName;
   }
 
+  const contestNotebooksBaseUrl = `${catalog_url}/${catalog_name}/notebooks`;
   launcher.add({
     category,
-    command: createCommand("Readme", `${catalog_url}/${catalog_name}/notebooks/README.ipynb`, "readme-icon"),
+    command: createCommand("readme", `${contestNotebooksBaseUrl}/README.ipynb`, "readme-icon"),
     rank: 0,
   });
   launcher.add({
     category,
-    command: createCommand("Catalog", catalog_url, "catalog-icon"),
+    command: createCommand("catalog", contestNotebooksBaseUrl, "catalog-icon"),
     rank: 1,
   });
 }
