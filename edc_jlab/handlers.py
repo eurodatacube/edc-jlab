@@ -67,8 +67,8 @@ class ContestSubmitHandler(APIHandler):
         self.log.info(f"Contest submission {relative_dir_path}")
         shutil.copytree(
             Path("/home/jovyan") / relative_dir_path,
-            "/mnt/contest-submit",
-            dirs_exist_ok=True,  # user can override their own submissions
+            # files will be picked up here, error on resubmit if not moved intentional!
+            "/mnt/contest-submit/submission",
         )
 
         # TODO: notify someone somewhere?
