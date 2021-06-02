@@ -16,9 +16,7 @@ import {
 import { IDocumentManager } from "@jupyterlab/docmanager";
 import { Widget } from "@lumino/widgets";
 import { requestAPI } from "./handler";
-
-export const EURODATACUBE_CATALOG = "eurodatacube";
-
+import { EURODATACUBE_CATALOG } from "./constants";
 
 function getNotebookUrlFromIFrameEvent(event: Event): string | null {
   const newPathname = (event.target as HTMLIFrameElement).contentWindow.location
