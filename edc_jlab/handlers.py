@@ -70,8 +70,7 @@ class ContestSubmitHandler(APIHandler):
             # files will be picked up here, error on resubmit if not moved intentional!
             "/mnt/contest-submit/submission",
         )
-
-        # TODO: notify someone somewhere?
+        # Notifications are handled by s3 change handlers
 
         self.finish()
 
