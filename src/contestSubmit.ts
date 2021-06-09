@@ -41,9 +41,17 @@ export function activateContestSubmit(
 
             const items = toArray(filebrowser.selectedItems());
             if (items.length === 1) {
-                const item = items[0];
-                console.log("Contest submit directory:", item.path);
-                await doSubmit(item.path);
+                const path = items[0].path;
+                console.log("Contest submit directory:", path);
+
+                const result = await showDialog({
+                    title: `Submission for ${contestName}`,
+                    body: `Do you really want to submit ${path} for ${contestName}?`,
+                    buttons: [Dialog.cancelButton(), Dialog.okButton()]
+                });
+                if (result.button.accept) {
+                    await doSubmit(path);
+                }
             } else {
                 console.error("Submit called with bad number of dirs", items);
             };
