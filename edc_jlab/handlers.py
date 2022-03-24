@@ -46,6 +46,29 @@ class InstallNotebookHandler(APIHandler):
             self.finish()
 
 
+class TilesHandler(APIHandler):
+    @tornado.web.authenticated
+    def get(self):
+        # TODO: this should come from customer-operator, but how?
+        # can't access directly from jlab frontend or even here, have no proper auth
+        # frontend can request via eoxhub-gateway, but we do need initial authorize before
+        # alternatively data could be passed in via env far or so from profile, but then new apps only appear on restart
+        # => maybe really don't show apps here, only in dashobard
+        # NOTE: services could still be retrieved unauth from gateway because they are global for a jupyter instance
+        self.finish(
+            {
+                "services": [
+                    {
+                        "name": "foo",
+                        "icon": "foo",
+                        "url": "http://jupyter.myeox.at/services/eoxhubg-gateway/foo",
+                    }
+                ],
+                "applications": [],
+            }
+        )
+
+
 class CatalogHandler(APIHandler):
     @tornado.web.authenticated
     def get(self):
@@ -83,6 +106,7 @@ def setup_handlers(web_app):
     endpoints = [
         ("install_notebook", InstallNotebookHandler),
         ("catalog", CatalogHandler),
+        ("tiles", TilesHandler),
         ("contest_submit", ContestSubmitHandler),
     ]
     handlers = [

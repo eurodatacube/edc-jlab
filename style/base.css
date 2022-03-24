@@ -55,3 +55,8 @@
     background-image: url('https://cockpit.hub.eox.at/storage/uploads/eoxhub/catalog.svg');
     background-size: contain;
 }
+
+.eoxhub-dashboard-icon {
+    background-image: url('https://cockpit.hub.eox.at/storage/uploads/eoxhub/eoxhub_icon.svg');
+    background-size: contain;
+}
