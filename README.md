@@ -10,6 +10,21 @@ for the server extension and a NPM package named `edc-jlab`
 for the frontend extension.
 
 
+# Local development
+
+```bash
+docker-compose up
+docker-compose exec jupyter-user bash -c "cd /mnt && jlpm run watch"
+```
+
+Add this to your `/etc/hosts`
+```
+127.0.0.1   jupyter.myeox.at nbviewer.myeox.at
+````
+
+Navigate to jupyter.myeox.at .
+
+
 ## Requirements
 
 * JupyterLab >= 3.0
