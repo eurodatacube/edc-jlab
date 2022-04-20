@@ -82,6 +82,10 @@ function createWidget(url: string): MainAreaWidget<IFrame> {
   const iframe = new IFrame();
   iframe.url = url;
 
+  const iframeDomElem = iframe.node.querySelector("iframe");
+  // TODO: try to keep this
+  iframeDomElem.removeAttribute("sandbox");
+
   return new MainAreaWidget({
     content: iframe,
   });
@@ -119,9 +123,24 @@ export function addIcons(
 
   launcher.add({
     category,
-    command: createCommand("dashboard", "EOxHub Dashboard", `/services/eoxhub-gateway/dashboard`, "eoxhub-dashboard-icon"),
+    command: createCommand("dashboard", "EOxHub Dashboard", `https://edc-dev-jupyter.hub.eox.at/services/eoxhub-gateway`, "eoxhub-dashboard-icon"),
     rank: 100,
   });
+
+  launcher.add({
+    category,
+    command: createCommand("service-sub", "Service subscriptions", `https://edc-dev-jupyter.hub.eox.at/services/eoxhub-gateway`, "eoxhub-dashboard-icon"),
+    rank: 101,
+  });
+
+  launcher.add({
+    category,
+    command: createCommand("custom-cred", "Custom credentials", `https://edc-dev-jupyter.hub.eox.at/services/eoxhub-gateway/edc-my-credentials/`, "eoxhub-dashboard-icon"),
+    rank: 102,
+  });
+
+
+
 }
 
 
