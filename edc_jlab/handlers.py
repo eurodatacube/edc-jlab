@@ -34,7 +34,7 @@ class InstallNotebookHandler(APIHandler):
         response.raise_for_status()
         nb_bytes = response.content
 
-        target_path: Path = Path("/home/jovyan") / target_path
+        target_path: Path = Path.home() / target_path
         if target_path.exists():
             self.set_status(409)
             self.log.info("Target file already exists")
@@ -66,7 +66,7 @@ class ContestSubmitHandler(APIHandler):
 
         self.log.info(f"Contest submission {relative_dir_path}")
         shutil.copytree(
-            Path("/home/jovyan") / relative_dir_path,
+            Path.home() / relative_dir_path,
             # files will be picked up here, error on resubmit if not moved intentional!
             "/mnt/contest-submit/submission",
         )
