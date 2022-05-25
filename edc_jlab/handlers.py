@@ -12,6 +12,12 @@ import shutil
 CATALOG_NAME = os.environ["CATALOG_NAME"]
 CATALOG_URL = os.environ["CATALOG_URL"]
 
+# TODO: pass via env
+EOXHUB_BRANDED_BASE_DOMAIN = os.environ.get(
+    "EOXHUB_BRANDED_BASE_DOMAIN",
+    "https://polartep.hub-dev.eox.at",
+)
+
 
 class InstallNotebookHandler(APIHandler):
     # The following decorator should be present on all verb methods (head, get, post,
@@ -29,7 +35,13 @@ class InstallNotebookHandler(APIHandler):
         #       `CATALOG_URL` usually is nbviewer.a.com/notebooks
         #       the target is supposed to be nbviewer.a.com/notebooks/foo/bar.ipynb
         #       see also the comment in index.ts:getNotebookUrlFromIFrameEvent
-        nb_download_url = urllib.parse.urljoin(CATALOG_URL, f"{notebook_path}?download")
+
+        # TODO: agree with frontend on how to pass this path, easiest for us is without prefix:
+        notebook_path = "polartep-first-steps.ipynb"
+
+        nb_download_url = urllib.parse.urljoin(
+            EOXHUB_BRANDED_BASE_DOMAIN, f"api/notebooks-download/{notebook_path}"
+        )
         response = requests.get(nb_download_url)
         response.raise_for_status()
         nb_bytes = response.content

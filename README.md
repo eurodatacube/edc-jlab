@@ -25,6 +25,16 @@ Add this to your `/etc/hosts`
 Navigate to jupyter.myeox.at .
 
 
+# Build package
+
+```bash
+docker-compose exec jupyter-user bash -c "cd /mnt && ./build_package.sh"
+```
+
+
+# Original documentation
+
+
 ## Requirements
 
 * JupyterLab >= 3.0

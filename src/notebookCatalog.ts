@@ -16,7 +16,6 @@ import {
 import { IDocumentManager } from "@jupyterlab/docmanager";
 import { Widget } from "@lumino/widgets";
 import { requestAPI } from "./handler";
-import { EURODATACUBE_CATALOG } from "./constants";
 
 function getNotebookUrlFromIFrameEvent(event: Event): string | null {
   const newPathname = (event.target as HTMLIFrameElement).contentWindow.location
@@ -194,12 +193,4 @@ export function activateNotebookCatalog(
     command: createCommand("catalog", catalogName, catalogNotebooksBaseUrl, "catalog-icon"),
     rank: 1,
   });
-  if (catalogName != EURODATACUBE_CATALOG) {
-    launcher.add({
-      category,
-      command: createCommand("eurodatacube", EURODATACUBE_CATALOG, `${catalogUrl}/${EURODATACUBE_CATALOG}/notebooks`, "catalog-icon"),
-      rank: 2,
-    });
-
-  }
 }

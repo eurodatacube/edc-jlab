@@ -1,6 +1,6 @@
 {
   "name": "edc-jlab",
-  "version": "0.5.10",
+  "version": "0.5.11-dev",
   "description": "Jupyterlab extension for Euro Data Cube",
   "keywords": [
     "jupyter",
