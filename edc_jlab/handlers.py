@@ -12,11 +12,8 @@ import shutil
 CATALOG_NAME = os.environ["CATALOG_NAME"]
 CATALOG_URL = os.environ["CATALOG_URL"]
 
-# TODO: pass via env
-EOXHUB_BRANDED_BASE_DOMAIN = os.environ.get(
-    "EOXHUB_BRANDED_BASE_DOMAIN",
-    "https://polartep.hub-dev.eox.at",
-)
+BRAND = os.environ.get("BRAND", "")
+BRANDED_BASE_DOMAIN = os.environ.get("EOXHUB_BRANDED_BASE_DOMAIN", "")
 
 
 class InstallNotebookHandler(APIHandler):
@@ -40,7 +37,7 @@ class InstallNotebookHandler(APIHandler):
         notebook_path = "polartep-first-steps.ipynb"
 
         nb_download_url = urllib.parse.urljoin(
-            EOXHUB_BRANDED_BASE_DOMAIN, f"api/notebooks-download/{notebook_path}"
+            BRANDED_BASE_DOMAIN, f"api/notebooks-download/{notebook_path}"
         )
         response = requests.get(nb_download_url)
         response.raise_for_status()
@@ -67,6 +64,8 @@ class CatalogHandler(APIHandler):
             {
                 "name": CATALOG_NAME,
                 "url": CATALOG_URL,
+                "brand": BRAND,
+                "branded_base_domain": BRANDED_BASE_DOMAIN,
             }
         )
 

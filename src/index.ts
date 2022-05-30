@@ -44,8 +44,8 @@ const extension: JupyterFrontEndPlugin<void> = {
     mainMenu: IMainMenu
   ) => {
 
-    const { name: catalogName, url: catalogUrl } = await requestAPI<any>('catalog');
-    activateNotebookCatalog(app, docmanager, launcher, catalogName, catalogUrl);
+    const { name: catalogName, url: catalogUrl, brand: brand, branded_base_domain: brandedBaseDomain  } = await requestAPI<any>('catalog');
+    activateNotebookCatalog(app, docmanager, launcher, catalogName, catalogUrl, brand, brandedBaseDomain);
     activateVersionLink(app, docmanager, mainMenu);
     activateCopyByRouter(app, docmanager, router);
     activateContribute(app, docmanager, factory);
