@@ -19,13 +19,20 @@ import { requestAPI } from "./handler";
 import { EURODATACUBE_CATALOG } from "./constants";
 
 function getNotebookUrlFromIFrameEvent(event: Event): string | null {
-  const newPathname = (event.target as HTMLIFrameElement).contentWindow.location
-    .pathname;
   // pathname is something like /notebooks/a/b/c/nb.ipynb
+  // OR /marketplace/notebooks/a/b/c/nb.ipynb
+  // we strip the marketplace prefix to be the same as the nbviewer url,
+  // so we're backwards compatible
+    //
+  console.log(`got new path ${(event.target as HTMLIFrameElement).contentWindow.location.pathname}`);
+  const newPathname = (event.target as HTMLIFrameElement).contentWindow.location
+    .pathname.replace(/^\/marketplace/, "")
+
+  console.log(`now new path ${newPathname}`);
   const prefix = "/notebooks";
   if (!newPathname.startsWith(prefix)) {
     console.warn(`Ignoring new iframe url ${newPathname}`);
-    return null;
+    return "";
   }
 
   // NOTE: nbviewer url path and notebook path are the same, but this is an accident!
