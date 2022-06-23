@@ -23,7 +23,7 @@ function getNotebookUrlFromIFrameEvent(event: Event): string | null {
   // OR /marketplace/notebooks/a/b/c/nb.ipynb
   // we strip the marketplace prefix to be the same as the nbviewer url,
   // so we're backwards compatible
-    //
+  //
   console.log(`got new path ${(event.target as HTMLIFrameElement).contentWindow.location.pathname}`);
   const newPathname = (event.target as HTMLIFrameElement).contentWindow.location
     .pathname.replace(/^\/marketplace/, "")
@@ -61,8 +61,8 @@ function createToolbar(docmanager: IDocumentManager) {
       iconClass: "fa fa-download",
       enabled: enabled,
       tooltip: enabled
-        ? "Execute notebook to home directory and open it"
-        : "Select a notebook to execute",
+      ? "Execute notebook to home directory and open it"
+      : "Select a notebook to execute",
       onClick: () => deployNotebook(docmanager, currentNbPath),
     });
     toolbar.addItem("copy", toolbarCopyButton);
@@ -84,55 +84,55 @@ class HtmlLabelRenderer extends Dialog.Renderer {
 export async function deployNotebook(
   docmanager: IDocumentManager,
   nbPath: string): Promise<void> {
-  // suggest just the filename since it doesn't seem easy to create directories here
-  // and also the users probably don't want to mirror the notebook repo dir structure.
-  const suggestedPath = nbPath.substring(nbPath.lastIndexOf("/") + 1);
+    // suggest just the filename since it doesn't seem easy to create directories here
+    // and also the users probably don't want to mirror the notebook repo dir structure.
+    const suggestedPath = nbPath.substring(nbPath.lastIndexOf("/") + 1);
 
-  const selectLabel = `Select a filename for the notebook "${suggestedPath}":`;
-  let label = selectLabel;
+    const selectLabel = `Select a filename for the notebook "${suggestedPath}":`;
+    let label = selectLabel;
 
-  // repeat input in case of problems
-  let bailout = false;
-  while (!bailout) {
-    const res = await InputDialog.getText({
-      text: suggestedPath,
-      title: "Copy notebook to workspace",
-      renderer: new HtmlLabelRenderer(),
-      label,
-    });
-    if (!res.button.accept) {
-      bailout = true;
-    } else {
-      const targetPath = res.value as string;
-      try {
-        await requestAPI<any>(
-          'install_notebook',
-          {
-            body: JSON.stringify({
-              nbPath: nbPath,
-              targetPath: targetPath,
-            }),
-            method: "POST",
-          }
-        );
-        docmanager.open(targetPath);
+    // repeat input in case of problems
+    let bailout = false;
+    while (!bailout) {
+      const res = await InputDialog.getText({
+        text: suggestedPath,
+        title: "Copy notebook to workspace",
+        renderer: new HtmlLabelRenderer(),
+        label,
+      });
+      if (!res.button.accept) {
         bailout = true;
-      } catch (e) {
-        console.log("error:", e);
-        if (e.response && e.response.status === 409) {
-          // ok, file exists
-        } else {
-          throw e;
+      } else {
+        const targetPath = res.value as string;
+        try {
+          await requestAPI<any>(
+            'install_notebook',
+            {
+              body: JSON.stringify({
+                nbPath: nbPath,
+                targetPath: targetPath,
+              }),
+              method: "POST",
+            }
+          );
+          docmanager.open(targetPath);
+          bailout = true;
+        } catch (e) {
+          console.log("error:", e);
+          if (e.response && e.response.status === 409) {
+            // ok, file exists
+          } else {
+            throw e;
+          }
         }
-      }
-      if (!bailout) {
-        label = `<p><b>Saving failed: existing or wrong filename</b></p>
+        if (!bailout) {
+          label = `<p><b>Saving failed: existing or wrong filename</b></p>
                 <p>If the file "${targetPath}" already exists, you can access it in the filebrowser on the left side of the screen.</p>
                 ${selectLabel}`;
+        }
       }
     }
   }
-}
 function createWidget(docmanager: IDocumentManager, catalogUrl: string): MainAreaWidget<IFrame> {
   const iframe = new IFrame();
   iframe.url = catalogUrl;
@@ -140,6 +140,7 @@ function createWidget(docmanager: IDocumentManager, catalogUrl: string): MainAre
   const { toolbar, refreshToolbar } = createToolbar(docmanager);
 
   const iframeDomElem = iframe.node.querySelector("iframe");
+
   iframeDomElem.addEventListener("load", (event: Event) => {
     const nbPath = getNotebookUrlFromIFrameEvent(event);
     refreshToolbar(nbPath);
@@ -192,37 +193,39 @@ export function activateNotebookCatalog(
     return catalogCommandName;
   }
 
-    if (brand) {
-        const catalogNotebooksBaseUrl = `${brandedBaseDomain}/catalog`; // TODO: embedded parameter?
-        launcher.add({
-            category,
-            command: createCommand("readme", brand, `${catalogNotebooksBaseUrl}/README.ipynb?embedded=True`, "readme-icon"),
-            rank: 0,
-        });
-        launcher.add({
-            category,
-            command: createCommand("catalog", brand, `${catalogNotebooksBaseUrl}?embedded=true`, "catalog-icon"),
-            rank: 1,
-        });
-    } else {
-        // legacy 
-        const catalogNotebooksBaseUrl = `${catalogUrl}/${catalogName}/notebooks`;
-        launcher.add({
-            category,
-            command: createCommand("readme", catalogName, `${catalogNotebooksBaseUrl}/README.ipynb`, "readme-icon"),
-            rank: 0,
-        });
-        launcher.add({
-            category,
-            command: createCommand("catalog", catalogName, catalogNotebooksBaseUrl, "catalog-icon"),
-            rank: 1,
-        });
-        if (catalogName != EURODATACUBE_CATALOG) {
-            launcher.add({
-                category,
-                command: createCommand("eurodatacube", EURODATACUBE_CATALOG, `${catalogUrl}/${EURODATACUBE_CATALOG}/notebooks`, "catalog-icon"),
-                rank: 2,
-            });
-        }
+  console.log("brand", brand);
+  console.log("brandedBaseDomain", brandedBaseDomain);
+  if (brand) {
+    const catalogNotebooksBaseUrl = `${brandedBaseDomain}/catalog`;
+    launcher.add({
+      category,
+      command: createCommand("readme", brand, `${catalogNotebooksBaseUrl}/README.ipynb?embedded=true`, "readme-icon"),
+      rank: 0,
+    });
+    launcher.add({
+      category,
+      command: createCommand("catalog", brand, `${catalogNotebooksBaseUrl}?embedded=true`, "catalog-icon"),
+      rank: 1,
+    });
+  } else {
+    // legacy 
+    const catalogNotebooksBaseUrl = `${catalogUrl}/${catalogName}/notebooks`;
+    launcher.add({
+      category,
+      command: createCommand("readme", catalogName, `${catalogNotebooksBaseUrl}/README.ipynb`, "readme-icon"),
+      rank: 0,
+    });
+    launcher.add({
+      category,
+      command: createCommand("catalog", catalogName, catalogNotebooksBaseUrl, "catalog-icon"),
+      rank: 1,
+    });
+    if (catalogName != EURODATACUBE_CATALOG) {
+      launcher.add({
+        category,
+        command: createCommand("eurodatacube", EURODATACUBE_CATALOG, `${catalogUrl}/${EURODATACUBE_CATALOG}/notebooks`, "catalog-icon"),
+        rank: 2,
+      });
     }
+  }
 }
