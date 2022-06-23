@@ -18,17 +18,15 @@ import { Widget } from "@lumino/widgets";
 import { requestAPI } from "./handler";
 import { EURODATACUBE_CATALOG } from "./constants";
 
-function getNotebookUrlFromIFrameEvent(event: Event): string | null {
+function getNotebookUrlFromIframeLocation(newLocation: Location): string | null {
   // pathname is something like /notebooks/a/b/c/nb.ipynb
   // OR /marketplace/notebooks/a/b/c/nb.ipynb
   // we strip the marketplace prefix to be the same as the nbviewer url,
   // so we're backwards compatible
   //
-  console.log(`got new path ${(event.target as HTMLIFrameElement).contentWindow.location.pathname}`);
-  const newPathname = (event.target as HTMLIFrameElement).contentWindow.location
-    .pathname.replace(/^\/marketplace/, "")
+  console.log(`Received new path ${newLocation.pathname}`);
+  const newPathname = newLocation.pathname.replace(/^\/marketplace/, "")
 
-  console.log(`now new path ${newPathname}`);
   const prefix = "/notebooks";
   if (!newPathname.startsWith(prefix)) {
     console.warn(`Ignoring new iframe url ${newPathname}`);
@@ -142,9 +140,16 @@ function createWidget(docmanager: IDocumentManager, catalogUrl: string): MainAre
   const iframeDomElem = iframe.node.querySelector("iframe");
 
   iframeDomElem.addEventListener("load", (event: Event) => {
-    const nbPath = getNotebookUrlFromIFrameEvent(event);
+    const nbPath = getNotebookUrlFromIframeLocation(iframeDomElem.contentWindow.location);
     refreshToolbar(nbPath);
   });
+
+  window.onmessage = (event: any) => {
+    console.log("Got message on window, refreshing execute button");
+    const nbPath = getNotebookUrlFromIframeLocation(iframeDomElem.contentWindow.location);
+    refreshToolbar(nbPath);
+  }
+
   // We need cross domain iframe communication, so we have to
   // remove the sandboxing :-(. However we only load the iframe from our
   // domain, so it you'd have to hack the domain anyway to do damage. Also
@@ -193,8 +198,6 @@ export function activateNotebookCatalog(
     return catalogCommandName;
   }
 
-  console.log("brand", brand);
-  console.log("brandedBaseDomain", brandedBaseDomain);
   if (brand) {
     const catalogNotebooksBaseUrl = `${brandedBaseDomain}/catalog`;
     launcher.add({

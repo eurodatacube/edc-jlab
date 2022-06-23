@@ -16,6 +16,14 @@ BRAND = os.environ.get("BRAND", "")
 BRANDED_BASE_DOMAIN = os.environ.get("EOXHUB_BRANDED_BASE_DOMAIN", "")
 
 
+# polyfil for old python
+def removeprefix(self: str, prefix: str) -> str:
+    if self.startswith(prefix):
+        return self[len(prefix) :]
+    else:
+        return self[:]
+
+
 class InstallNotebookHandler(APIHandler):
     # The following decorator should be present on all verb methods (head, get, post,
     # patch, put, delete, options) to ensure only authorized user can request the
@@ -23,7 +31,10 @@ class InstallNotebookHandler(APIHandler):
     @tornado.web.authenticated
     def post(self):
         body = self.get_json_body()
-        notebook_path = body["nbPath"]
+        notebook_path = removeprefix(
+            body["nbPath"],
+            "/notebooks",  # NOTE: new frontend passes this prefix, we have to remove it here
+        )
         target_path = body["targetPath"]
 
         self.log.info(f"Deploying {notebook_path} to {target_path}")
@@ -32,9 +43,6 @@ class InstallNotebookHandler(APIHandler):
         #       `CATALOG_URL` usually is nbviewer.a.com/notebooks
         #       the target is supposed to be nbviewer.a.com/notebooks/foo/bar.ipynb
         #       see also the comment in index.ts:getNotebookUrlFromIFrameEvent
-
-        # TODO: agree with frontend on how to pass this path, easiest for us is without prefix:
-        notebook_path = "polartep-first-steps.ipynb"
 
         nb_download_url = urllib.parse.urljoin(
             BRANDED_BASE_DOMAIN, f"api/notebooks-download/{notebook_path}"
