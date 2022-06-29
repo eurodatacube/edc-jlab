@@ -6,7 +6,6 @@
 import { JupyterFrontEnd } from "@jupyterlab/application";
 import { IDocumentManager } from "@jupyterlab/docmanager";
 import { IFileBrowserFactory, FileBrowser } from "@jupyterlab/filebrowser";
-import { Contents } from "@jupyterlab/services";
 import { toArray } from "@lumino/algorithm";
 import { NOTEBOOK_ICON_CLASS } from "./constants";
 
@@ -47,7 +46,7 @@ export function activateContribute(
       );
       if (items.length > 0) {
         // TODO: make call to new backend endpoint (TODO) to copy the files to .contribute-staging
-        const contributePromise = do_stuff();
+        const contributePromise : any = null;
 
         // need to open window right now in click handler, it's not allowed
         // in promise handler.
