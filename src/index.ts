@@ -17,6 +17,7 @@ import { activateContribute } from "./contribute";
 import { activateNotebookCatalog } from "./notebookCatalog";
 import { activateCopyByRouter } from "./copyByRouter";
 import { activateContestSubmit } from "./contestSubmit";
+import { activateStacDownload } from "./stacDownload";
 import { requestAPI } from "./handler";
 import { EURODATACUBE_CATALOG } from "./constants";
 
@@ -49,6 +50,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     activateVersionLink(app, docmanager, mainMenu);
     activateCopyByRouter(app, docmanager, router);
     activateContribute(app, docmanager, factory);
+    activateStacDownload(app, docmanager, factory);
 
     if (catalogName != EURODATACUBE_CATALOG) {
       activateContestSubmit(app, factory, catalogName);
