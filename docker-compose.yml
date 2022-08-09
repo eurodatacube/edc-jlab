@@ -1,7 +1,7 @@
 version: "3.7"
 services:
     jupyter-user:
-        image: eurodatacube/jupyter-user:0.24.5
+        image: eurodatacube/jupyter-user:2022.02
         environment:
         - JUPYTER_ENABLE_LAB=yes
         #- CATALOG_NAME=eurodatacube
