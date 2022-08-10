@@ -3,10 +3,12 @@ from jupyter_server.utils import url_path_join
 import tornado
 import requests
 import json
-from pathlib import Path
+from pathlib import Path, PurePath
 import os
 import urllib.parse
 import shutil
+from textwrap import dedent
+import typing
 
 
 CATALOG_NAME = os.environ["CATALOG_NAME"]
@@ -75,6 +77,95 @@ class ContestSubmitHandler(APIHandler):
         self.finish()
 
 
+class StacItemHandler(APIHandler):
+    @tornado.web.authenticated
+    def post(self):
+        request_body = self.get_json_body()
+        stac_item_relative_path = PurePath(request_body["item_path"])
+        self.log.info(f"Creating download notebook for {stac_item_relative_path}")
+
+        notebook_relative_path = stac_item_relative_path.with_name(
+            f"process-{stac_item_relative_path.name}",
+        ).with_suffix(".ipynb")
+        notebook_absolute_path = Path.home() / notebook_relative_path
+
+        if not notebook_absolute_path.exists():
+            nb_contents = self.create_stac_download_notebook(stac_item_relative_path)
+
+            notebook_absolute_path.write_text(
+                json.dumps(nb_contents, indent=4),
+            )
+
+        self.finish({"notebook_path": str(notebook_relative_path)})
+
+    @staticmethod
+    def create_stac_download_notebook(item_path: PurePath) -> typing.Dict:
+        cells = [
+            """
+            from pathlib import Path
+            target_dir = Path.home() / "downloaded_stac_files"
+            """,
+            """
+            import sys
+            !{sys.executable} -m pip install --user pystac
+            """,
+            f"""
+            import json
+            import pystac
+            stac_data = json.load(open("{item_path}"))
+            # work around missing datetime in SH openeo backend
+            stac_data['properties']['datetime'] = "2020-01-01"
+            item = pystac.Item.from_dict(stac_data)
+            item
+            """,
+            """
+            item.assets
+            """,
+            """
+            for key, asset in item.assets:
+                target_file = target_dir / key
+                target_file.parent.mkdir(exist_ok=True, parents=True)
+
+                response = requests.get(asset.href, stream=True)
+                with open(target_file, "wb") as handle:
+                for data in response.iter_content():
+                    handle.write(data)
+            """,
+        ]
+
+        return {
+            "cells": [
+                {
+                    "source": [
+                        f"{line}\n" for line in dedent(source).split("\n") if line
+                    ],
+                    "cell_type": "code",
+                    "metadata": {},
+                    "outputs": [],
+                }
+                for source in cells
+            ],
+            "metadata": {
+                "kernelspec": {
+                    "display_name": "Python 3 (ipykernel)",
+                    "language": "python",
+                    "name": "python3",
+                },
+                "language_info": {
+                    "codemirror_mode": {"name": "ipython", "version": 3},
+                    "file_extension": ".py",
+                    "mimetype": "text/x-python",
+                    "name": "python",
+                    "nbconvert_exporter": "python",
+                    "pygments_lexer": "ipython3",
+                    "version": "3.9.7",
+                },
+            },
+            "nbformat": 4,
+            "nbformat_minor": 5,
+        }
+
+
 def setup_handlers(web_app):
     host_pattern = ".*$"
 
@@ -84,6 +175,7 @@ def setup_handlers(web_app):
         ("install_notebook", InstallNotebookHandler),
         ("catalog", CatalogHandler),
         ("contest_submit", ContestSubmitHandler),
+        ("stac_item", StacItemHandler),
     ]
     handlers = [
         (url_path_join(base_url, "edc_jlab", endpoint), handler)

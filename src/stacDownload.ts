@@ -7,7 +7,13 @@ import { JupyterFrontEnd } from "@jupyterlab/application";
 import { IDocumentManager } from "@jupyterlab/docmanager";
 import { IFileBrowserFactory, FileBrowser } from "@jupyterlab/filebrowser";
 import { toArray } from "@lumino/algorithm";
+import { showErrorMessage } from "@jupyterlab/apputils";
 import { NOTEBOOK_ICON_CLASS } from "./constants";
+import { requestAPI } from "./handler";
+
+
+
+// TODO: get rid of "download" wording everywhere
 
 
 /**
@@ -19,7 +25,7 @@ export function activateStacDownload(
   factory: IFileBrowserFactory) {
   const downloadCommand = "eoxhub:stac-download";
   app.commands.addCommand(downloadCommand, {
-    label: "EOxHub: Download stac item",
+    label: "EOxHub: Generate STAC processing notebook",
     iconClass: NOTEBOOK_ICON_CLASS,
     isVisible: () => {
       // NOTE: market place is currently restricted to 1 contributed file
@@ -29,12 +35,13 @@ export function activateStacDownload(
       }
       const files = toArray(filebrowser.selectedItems());
       if (files.length !== 1) {
+        // limit to 1 file for now
         return false;
       }
       // allow operation or all json files
       return files[0].mimetype == "application/json";
     },
-    execute: () => {
+    execute: async () => {
       const filebrowser: FileBrowser = factory.tracker.currentWidget;
       if (!filebrowser) {
         return;
@@ -46,8 +53,8 @@ export function activateStacDownload(
         items.map((item) => item.path).join(", ")
       );
       if (items.length > 0) {
-        // TODO: make call to new backend endpoint (TODO) to copy the files to .contribute-staging
-
+        const nbPath = await doDownloadStacItem(items[0].path)
+        docmanager.open(nbPath);
       }
     },
   });
@@ -61,3 +68,23 @@ export function activateStacDownload(
     rank: 9, // about at the end of file-operations
   });
 }
+
+async function doDownloadStacItem(path: string): Promise<string> {
+  try {
+    const response = await requestAPI<any>(
+      'stac_item',
+      {
+        body: JSON.stringify({
+          item_path: path,
+        }),
+        method: "POST",
+      }
+    );
+    return response["notebook_path"];
+  } catch (e) {
+    console.log("error:", e);
+    showErrorMessage("Download failed", `Failed to download stac item: ${e}`);
+    return "";  // TOOD: check what happens here
+  }
+}
+
