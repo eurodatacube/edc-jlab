@@ -105,12 +105,13 @@ class StacItemHandler(APIHandler):
             from pathlib import Path
             target_dir = Path.home() / "downloaded_stac_files"
             """,
-            """
-            import sys
-            !{sys.executable} -m pip install --user pystac
-            """,
+            # """
+            # import sys
+            #!{sys.executable} -m pip install --user pystac
+            # """,
             f"""
             import json
+            import requests
             import pystac
             stac_data = json.load(open("{item_path}"))
             # work around missing datetime in SH openeo backend
@@ -122,14 +123,15 @@ class StacItemHandler(APIHandler):
             item.assets
             """,
             """
-            for key, asset in item.assets:
+            for key, asset in item.assets.items():
                 target_file = target_dir / key
                 target_file.parent.mkdir(exist_ok=True, parents=True)
 
                 response = requests.get(asset.href, stream=True)
                 with open(target_file, "wb") as handle:
-                for data in response.iter_content():
-                    handle.write(data)
+                    print(f"Downloading {key}")
+                    for data in response.iter_content():
+                        handle.write(data)
             """,
         ]
 
