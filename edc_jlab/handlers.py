@@ -127,9 +127,11 @@ class StacItemHandler(APIHandler):
                 target_file = target_dir / key
                 target_file.parent.mkdir(exist_ok=True, parents=True)
 
+                print(f"Downloading {key} to {target_file}")
+
                 response = requests.get(asset.href, stream=True)
+                response.raise_for_status()
                 with open(target_file, "wb") as handle:
-                    print(f"Downloading {key}")
                     for data in response.iter_content():
                         handle.write(data)
             """,
