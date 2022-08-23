@@ -101,18 +101,13 @@ class StacItemHandler(APIHandler):
     @staticmethod
     def create_stac_download_notebook(item_path: PurePath) -> typing.Dict:
         cells = [
-            """
-            from pathlib import Path
-            target_dir = Path.home() / "downloaded_stac_files"
-            """,
-            # """
-            # import sys
-            #!{sys.executable} -m pip install --user pystac
-            # """,
             f"""
             import json
             import requests
             import pystac
+            from pathlib import Path
+            from IPython.display import display
+            import ipywidgets as widgets
             stac_data = json.load(open("{item_path}"))
             # work around missing datetime in SH openeo backend
             stac_data['properties']['datetime'] = "2020-01-01"
@@ -120,20 +115,26 @@ class StacItemHandler(APIHandler):
             item
             """,
             """
-            item.assets
-            """,
-            """
-            for key, asset in item.assets.items():
-                target_file = target_dir / key
-                target_file.parent.mkdir(exist_ok=True, parents=True)
+            button_dl_user = widgets.Button(description="Download (user)", icon='user', layout=widgets.Layout(width='250px'))
+            button_dl_shared = widgets.Button(description="Download (shared)", icon='share-alt', layout=widgets.Layout(width='250px'))
+            output = widgets.Output()
+            display(button_dl_user, button_dl_shared,  output)
+            @output.capture()
+            def download(button):
+                target_dir = Path.home() / ("shared" if button == button_dl_shared else "")  / "downloaded_stac_files"
+                output.clear_output()
+                for key, asset in item.assets.items():
+                    target_file = target_dir / key
+                    target_file.parent.mkdir(exist_ok=True, parents=True)
+                    print(f"Downloading {key} to {target_file.relative_to(Path.home())}")
+                    response = requests.get(asset.href, stream=True)
+                    response.raise_for_status()
+                    with open(target_file, "wb") as handle:
+                        for data in response.iter_content():
+                            handle.write(data)
 
-                print(f"Downloading {key} to {target_file}")
-
-                response = requests.get(asset.href, stream=True)
-                response.raise_for_status()
-                with open(target_file, "wb") as handle:
-                    for data in response.iter_content():
-                        handle.write(data)
+            button_dl_user.on_click(download)
+            button_dl_shared.on_click(download)
             """,
         ]
 
