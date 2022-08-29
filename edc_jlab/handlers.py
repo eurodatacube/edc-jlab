@@ -121,7 +121,7 @@ class StacItemHandler(APIHandler):
             display(button_dl_user, button_dl_shared,  output)
             @output.capture()
             def download(button):
-                target_dir = Path.home() / ("shared" if button == button_dl_shared else "")  / "downloaded_stac_files"
+                target_dir = Path.home() / (".shared/eurodatacube" if button == button_dl_shared else "")  / "downloaded_stac_files"
                 output.clear_output()
                 for key, asset in item.assets.items():
                     target_file = target_dir / key
