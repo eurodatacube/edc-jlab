@@ -104,6 +104,7 @@ class StacItemHandler(APIHandler):
             f"""
             import json
             import requests
+            import os
             import pystac
             from pathlib import Path
             from IPython.display import display
@@ -121,7 +122,7 @@ class StacItemHandler(APIHandler):
             display(button_dl_user, button_dl_shared,  output)
             @output.capture()
             def download(button):
-                target_dir = Path.home() / (".shared/eurodatacube" if button == button_dl_shared else "")  / "downloaded_stac_files"
+                target_dir = Path.home() / (f".shared/{os.environ['CATALOG_NAME']}" if button == button_dl_shared else "")  / "downloaded_stac_files"
                 output.clear_output()
                 for key, asset in item.assets.items():
                     target_file = target_dir / key
