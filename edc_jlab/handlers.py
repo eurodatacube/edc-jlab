@@ -130,7 +130,7 @@ class StacItemHandler(APIHandler):
                     response = requests.get(asset.href, stream=True)
                     response.raise_for_status()
                     with open(target_file, "wb") as handle:
-                        for data in response.iter_content():
+                        for data in response.iter_content(chunk_size=None):
                             handle.write(data)
 
             button_dl_user.on_click(download)
