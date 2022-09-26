@@ -21,7 +21,5 @@ services:
     nginx:
         image: nginx:1.17.8
         network_mode: host
-        ports:
-        - 8000:8000
         volumes:
         - ./dev/nginx-conf.d:/etc/nginx/conf.d
