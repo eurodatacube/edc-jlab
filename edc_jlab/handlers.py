@@ -24,14 +24,23 @@ class InstallNotebookHandler(APIHandler):
         body = self.get_json_body()
         notebook_path = body["nbPath"]
         target_path = body["targetPath"]
+        host = body["host"]
+        via_eoxhub_gateway = body["viaEoxhubGateway"]
 
         self.log.info(f"Deploying {notebook_path} to {target_path}")
 
-        # NOTE: `notebook_path` is usually an absolute path /notebook/foo/bar.ipynb
-        #       `CATALOG_URL` usually is nbviewer.a.com/notebooks
-        #       the target is supposed to be nbviewer.a.com/notebooks/foo/bar.ipynb
-        #       see also the comment in index.ts:getNotebookUrlFromIFrameEvent
-        nb_download_url = urllib.parse.urljoin(CATALOG_URL, f"{notebook_path}?download")
+        if via_eoxhub_gateway:
+            # notebook path is like curated/EDC_Usecase-NDVI_timeline.ipynb
+            nb_download_url = f"https://{host}/services/eoxhub-gateway/edc/notebooks-download/{notebook_path}"
+        else:
+            # NOTE: `notebook_path` is usually an absolute path /notebook/foo/bar.ipynb
+            #       `CATALOG_URL` usually is nbviewer.a.com/notebooks
+            #       the target is supposed to be nbviewer.a.com/notebooks/foo/bar.ipynb
+            #       see also the comment in index.ts:getNotebookUrlFromIFrameEvent
+            nb_download_url = urllib.parse.urljoin(
+                CATALOG_URL, f"{notebook_path}?download"
+            )
+
         response = requests.get(nb_download_url)
         response.raise_for_status()
         nb_bytes = response.content

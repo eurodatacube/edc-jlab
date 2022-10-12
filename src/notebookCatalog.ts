@@ -75,7 +75,9 @@ class HtmlLabelRenderer extends Dialog.Renderer {
  */
 export async function deployNotebook(
   docmanager: IDocumentManager,
-  nbPath: string): Promise<void> {
+  nbPath: string,
+  viaEoxhubGateway: boolean = false,
+): Promise<void> {
   // suggest just the filename since it doesn't seem easy to create directories here
   // and also the users probably don't want to mirror the notebook repo dir structure.
   const suggestedPath = nbPath.substring(nbPath.lastIndexOf("/") + 1);
@@ -103,6 +105,8 @@ export async function deployNotebook(
             body: JSON.stringify({
               nbPath: nbPath,
               targetPath: targetPath,
+              viaEoxhubGateway: viaEoxhubGateway,
+              host: document.location.hostname,
             }),
             method: "POST",
           }
@@ -131,6 +135,7 @@ function createWidget(docmanager: IDocumentManager, catalogUrl: string): MainAre
 
   const { toolbar, refreshToolbar } = createToolbar(docmanager);
 
+  // old method with watching iframe content
   const iframeDomElem = iframe.node.querySelector("iframe");
   iframeDomElem.addEventListener("load", (event: Event) => {
     const nbPath = getNotebookUrlFromIFrameEvent(event);
@@ -160,6 +165,14 @@ export function activateNotebookCatalog(
 ) {
   const category = "EOxHub";
 
+  window.addEventListener("message", (event) => {
+    console.log("Handling message event", event.data);
+    // events look like: { execute: "curated/EDC_Usecase-NDVI_timeline.ipynb" }
+    const nbPath = event.data.execute;
+    deployNotebook(docmanager, nbPath, true);
+  });
+
+
   function createCommand(id: string, label: string, url: string, iconClass: string): string {
     let notebookCatalogWidget: MainAreaWidget<IFrame> = null;
     const catalogCommandName = `edc:notebook_catalog_${id}`;
@@ -181,13 +194,9 @@ export function activateNotebookCatalog(
     });
     return catalogCommandName;
   }
-
-  const catalogNotebooksBaseUrl = `${catalogUrl}/${catalogName}/notebooks`;
-  launcher.add({
-    category,
-    command: createCommand("readme", catalogName, `${catalogNotebooksBaseUrl}/README.ipynb`, "readme-icon"),
-    rank: 0,
-  });
+  // compatibility: older catalog urls needed {catalogName}/notebooks postfix
+  // the more recent notebook-view doesn't, so let's support both for a while
+  const catalogNotebooksBaseUrl = catalogUrl.endsWith("notebook-view/") ? catalogUrl : `${catalogUrl}/${catalogName}/notebooks`;
   launcher.add({
     category,
     command: createCommand("catalog", catalogName, catalogNotebooksBaseUrl, "catalog-icon"),
