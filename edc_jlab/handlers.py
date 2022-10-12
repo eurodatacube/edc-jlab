@@ -9,6 +9,7 @@ import urllib.parse
 import shutil
 from textwrap import dedent
 import typing
+import re
 
 
 CATALOG_NAME = os.environ["CATALOG_NAME"]
@@ -30,8 +31,10 @@ class InstallNotebookHandler(APIHandler):
         self.log.info(f"Deploying {notebook_path} to {target_path}")
 
         if via_eoxhub_gateway:
+            # catalog url must match sth like /services/eoxhub-gateway/deepesdl/notebook-view/
+            path_prefix = re.match(r"/services/eoxhub-gateway/[^/]+/", CATALOG_URL).group(0)
             # notebook path is like curated/EDC_Usecase-NDVI_timeline.ipynb
-            nb_download_url = f"https://{host}/services/eoxhub-gateway/edc/notebooks-download/{notebook_path}"
+            nb_download_url = f"https://{host}{path_prefix}notebooks-download/{notebook_path}"
         else:
             # NOTE: `notebook_path` is usually an absolute path /notebook/foo/bar.ipynb
             #       `CATALOG_URL` usually is nbviewer.a.com/notebooks
