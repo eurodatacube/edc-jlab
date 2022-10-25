@@ -9,59 +9,12 @@ import {
   IFrame,
   InputDialog,
   MainAreaWidget,
-  Toolbar,
-  ToolbarButton,
   Dialog
 } from "@jupyterlab/apputils";
 import { IDocumentManager } from "@jupyterlab/docmanager";
 import { Widget } from "@lumino/widgets";
 import { requestAPI } from "./handler";
 
-function getNotebookUrlFromIFrameEvent(event: Event): string | null {
-  const newPathname = (event.target as HTMLIFrameElement).contentWindow.location
-    .pathname;
-  // pathname is something like /notebooks/a/b/c/nb.ipynb
-  const prefix = "/notebooks";
-  if (!newPathname.startsWith(prefix)) {
-    console.warn(`Ignoring new iframe url ${newPathname}`);
-    return null;
-  }
-
-  // NOTE: nbviewer url path and notebook path are the same, but this is an accident!
-  //       nbviewer uses "/notebooks" as url prefix to serve local files. But also
-  //       the main directory of the notebooks is called "notebooks", and nbviewer
-  //       services files directly from this directory.
-  return newPathname;
-}
-function isNotebookFile(nbPath: string): boolean {
-  return nbPath.endsWith(".ipynb");
-}
-function createToolbar(docmanager: IDocumentManager) {
-  const toolbar = new Toolbar();
-  toolbar.addClass("edc-toolbar");
-  let toolbarCopyButton: ToolbarButton | null = null;
-
-  function refreshToolbar(currentNbPath: string): void {
-    // there doesn't seem to be a way to toggle "enable", so we re-add the button
-    // every time.
-    if (toolbarCopyButton) {
-      toolbar.layout!.removeWidget(toolbarCopyButton);
-    }
-    const enabled = isNotebookFile(currentNbPath);
-    toolbarCopyButton = new ToolbarButton({
-      label: "Execute Notebook",
-      iconClass: "fa fa-download",
-      enabled: enabled,
-      tooltip: enabled
-        ? "Execute notebook to home directory and open it"
-        : "Select a notebook to execute",
-      onClick: () => deployNotebook(docmanager, currentNbPath),
-    });
-    toolbar.addItem("copy", toolbarCopyButton);
-  }
-  refreshToolbar("");
-  return { toolbar, refreshToolbar };
-}
 class HtmlLabelRenderer extends Dialog.Renderer {
   createBody(value: Dialog.Body<any>): Widget {
     const label = (value as Widget).node.querySelector("label");
@@ -129,27 +82,21 @@ export async function deployNotebook(
     }
   }
 }
-function createWidget(docmanager: IDocumentManager, catalogUrl: string): MainAreaWidget<IFrame> {
+function createWidget(catalogUrl: string): MainAreaWidget<IFrame> {
   const iframe = new IFrame();
   iframe.url = catalogUrl;
 
-  const { toolbar, refreshToolbar } = createToolbar(docmanager);
-
   // old method with watching iframe content
   const iframeDomElem = iframe.node.querySelector("iframe");
-  iframeDomElem.addEventListener("load", (event: Event) => {
-    const nbPath = getNotebookUrlFromIFrameEvent(event);
-    refreshToolbar(nbPath);
-  });
   // We need cross domain iframe communication, so we have to
   // remove the sandboxing :-(. However we only load the iframe from our
   // domain, so it you'd have to hack the domain anyway to do damage. Also
   // the nbviewer has a very small attack surface.
+  // TODO: this can probably be removed since we postMessage communication now
   iframeDomElem.removeAttribute("sandbox");
 
   return new MainAreaWidget({
     content: iframe,
-    toolbar,
   });
 }
 /**
@@ -181,9 +128,10 @@ export function activateNotebookCatalog(
       iconClass,
       execute: () => {
         if (!notebookCatalogWidget || !notebookCatalogWidget.isAttached) {
+          // TODO: this might not be necessary any more since we don't have the toolbar any more
           // it would be nicer to keep the widget instance, but it seems that
           // detaching destroys the layout object of the toolbar :-/
-          notebookCatalogWidget = createWidget(docmanager, url);
+          notebookCatalogWidget = createWidget(url);
           notebookCatalogWidget.title.label = label;
           notebookCatalogWidget.title.iconClass = iconClass;
           notebookCatalogWidget.title.closable = true;
