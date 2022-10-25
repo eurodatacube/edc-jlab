@@ -13,7 +13,6 @@ import { IFileBrowserFactory } from "@jupyterlab/filebrowser";
 import { IMainMenu } from "@jupyterlab/mainmenu";
 
 import { activateVersionLink } from "./versionLink";
-import { activateContribute } from "./contribute";
 import { activateNotebookCatalog } from "./notebookCatalog";
 import { activateCopyByRouter } from "./copyByRouter";
 import { activateContestSubmit } from "./contestSubmit";
@@ -49,7 +48,6 @@ const extension: JupyterFrontEndPlugin<void> = {
     activateNotebookCatalog(app, docmanager, launcher, catalogName, catalogUrl);
     activateVersionLink(app, docmanager, mainMenu);
     activateCopyByRouter(app, docmanager, router);
-    activateContribute(app, docmanager, factory);
     activateStacDownload(app, docmanager, factory);
 
     if (catalogName != EURODATACUBE_CATALOG) {
