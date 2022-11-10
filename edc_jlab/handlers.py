@@ -32,9 +32,22 @@ class InstallNotebookHandler(APIHandler):
 
         if via_eoxhub_gateway:
             # catalog url must match sth like /services/eoxhub-gateway/deepesdl/notebook-view/
-            path_prefix = re.match(r"/services/eoxhub-gateway/[^/]+/", CATALOG_URL).group(0)
+            path_prefix = re.match(
+                r"/services/eoxhub-gateway/[^/]+/",
+                CATALOG_URL,
+            ).group(0)
+            eoxhub_gateway_url = f"https://{host}{path_prefix}"
             # notebook path is like curated/EDC_Usecase-NDVI_timeline.ipynb
-            nb_download_url = f"https://{host}{path_prefix}notebooks-download/{notebook_path}"
+            nb_download_url = f"{eoxhub_gateway_url}notebooks-download/{notebook_path}"
+
+            cookies = {
+                morsel.key: morsel.value for morsel in self.request.cookies.values()
+            }
+            self.record_execution(
+                eoxhub_gateway_url=eoxhub_gateway_url,
+                cookies=cookies,
+                notebook_path=notebook_path,
+            )
         else:
             # NOTE: `notebook_path` is usually an absolute path /notebook/foo/bar.ipynb
             #       `CATALOG_URL` usually is nbviewer.a.com/notebooks
@@ -44,6 +57,7 @@ class InstallNotebookHandler(APIHandler):
                 CATALOG_URL, f"{notebook_path}?download"
             )
 
+        self.log.info(f"Downloading notebook from {nb_download_url}")
         response = requests.get(nb_download_url)
         response.raise_for_status()
         nb_bytes = response.content
@@ -58,6 +72,20 @@ class InstallNotebookHandler(APIHandler):
             target_path.write_bytes(nb_bytes)
 
             self.finish()
+
+    def record_execution(self, eoxhub_gateway_url: str, cookies, notebook_path: str):
+        # use whoami endpoint to find out user email
+        whoami_response = requests.get(f"{eoxhub_gateway_url}/whoami", cookies=cookies)
+        whoami_response.raise_for_status()
+
+        user_email = whoami_response.json()["email"]
+        self.log.info(f"Recording execution for user {user_email}")
+
+        record_request = requests.post(
+            f"{eoxhub_gateway_url}community/items/executions",
+            params={"user": user_email, "item": notebook_path},
+        )
+        record_request.raise_for_status()
 
 
 class CatalogHandler(APIHandler):
