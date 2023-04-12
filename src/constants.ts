@@ -2,6 +2,6 @@
 // Copyright (c) EOX IT Services
 // Distributed under the terms of the MIT License.
 
+export const NOTEBOOK_ICON_CLASS = 'notebook-catalog-icon';
+export const EURODATACUBE_CATALOG = 'eurodatacube';
 
-export const NOTEBOOK_ICON_CLASS = "notebook-catalog-icon";
-export const EURODATACUBE_CATALOG = "eurodatacube";

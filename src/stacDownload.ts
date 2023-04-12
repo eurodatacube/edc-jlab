@@ -2,19 +2,15 @@
 // Copyright (c) EOX IT Services
 // Distributed under the terms of the MIT License.
 
-
-import { JupyterFrontEnd } from "@jupyterlab/application";
-import { IDocumentManager } from "@jupyterlab/docmanager";
-import { IFileBrowserFactory, FileBrowser } from "@jupyterlab/filebrowser";
-import { toArray } from "@lumino/algorithm";
-import { showErrorMessage } from "@jupyterlab/apputils";
-import { NOTEBOOK_ICON_CLASS } from "./constants";
-import { requestAPI } from "./handler";
-
-
+import { JupyterFrontEnd } from '@jupyterlab/application';
+import { IDocumentManager } from '@jupyterlab/docmanager';
+import { IFileBrowserFactory, FileBrowser } from '@jupyterlab/filebrowser';
+import { toArray } from '@lumino/algorithm';
+import { showErrorMessage } from '@jupyterlab/apputils';
+import { NOTEBOOK_ICON_CLASS } from './constants';
+import { requestAPI } from './handler';
 
 // TODO: get rid of "download" wording everywhere
-
 
 /**
  * Add a context menu triggering stac item download
@@ -22,10 +18,11 @@ import { requestAPI } from "./handler";
 export function activateStacDownload(
   app: JupyterFrontEnd<JupyterFrontEnd.IShell>,
   docmanager: IDocumentManager,
-  factory: IFileBrowserFactory) {
-  const downloadCommand = "eoxhub:stac-download";
+  factory: IFileBrowserFactory
+) {
+  const downloadCommand = 'eoxhub:stac-download';
   app.commands.addCommand(downloadCommand, {
-    label: "EOxHub: Generate STAC processing notebook",
+    label: 'EOxHub: Generate STAC processing notebook',
     iconClass: NOTEBOOK_ICON_CLASS,
     isVisible: () => {
       // NOTE: market place is currently restricted to 1 contributed file
@@ -39,7 +36,7 @@ export function activateStacDownload(
         return false;
       }
       // allow operation or all json files
-      return files[0].mimetype == "application/json";
+      return files[0].mimetype == 'application/json';
     },
     execute: async () => {
       const filebrowser: FileBrowser = factory.tracker.currentWidget;
@@ -49,14 +46,14 @@ export function activateStacDownload(
 
       const items = toArray(filebrowser.selectedItems());
       console.log(
-        "downloading items:",
-        items.map((item) => item.path).join(", ")
+        'downloading items:',
+        items.map(item => item.path).join(', ')
       );
       if (items.length > 0) {
-        const nbPath = await doDownloadStacItem(items[0].path)
+        const nbPath = await doDownloadStacItem(items[0].path);
         docmanager.open(nbPath);
       }
-    },
+    }
   });
 
   // selector as from packages/filebrowser-extension/src/index.ts
@@ -65,26 +62,22 @@ export function activateStacDownload(
   app.contextMenu.addItem({
     selector: selectorNotDir,
     command: downloadCommand,
-    rank: 9, // about at the end of file-operations
+    rank: 9 // about at the end of file-operations
   });
 }
 
 async function doDownloadStacItem(path: string): Promise<string> {
   try {
-    const response = await requestAPI<any>(
-      'stac_item',
-      {
-        body: JSON.stringify({
-          item_path: path,
-        }),
-        method: "POST",
-      }
-    );
-    return response["notebook_path"];
+    const response = await requestAPI<any>('stac_item', {
+      body: JSON.stringify({
+        item_path: path
+      }),
+      method: 'POST'
+    });
+    return response['notebook_path'];
   } catch (e) {
-    console.log("error:", e);
-    showErrorMessage("Download failed", `Failed to download stac item: ${e}`);
-    return "";  // TOOD: check what happens here
+    console.log('error:', e);
+    showErrorMessage('Download failed', `Failed to download stac item: ${e}`);
+    return ''; // TOOD: check what happens here
   }
 }
-
