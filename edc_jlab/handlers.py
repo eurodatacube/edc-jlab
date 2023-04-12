@@ -21,41 +21,31 @@ class InstallNotebookHandler(APIHandler):
     # patch, put, delete, options) to ensure only authorized user can request the
     # Jupyter server
     @tornado.web.authenticated
-    def post(self):
+    def post(self) -> None:
         body = self.get_json_body()
         notebook_path = body["nbPath"]
         target_path = body["targetPath"]
         host = body["host"]
-        via_eoxhub_gateway = body["viaEoxhubGateway"]
 
         self.log.info(f"Deploying {notebook_path} to {target_path}")
 
-        if via_eoxhub_gateway:
-            # catalog url must match sth like /services/eoxhub-gateway/deepesdl/notebook-view/
-            path_prefix = re.match(
-                r"/services/eoxhub-gateway/[^/]+/",
-                CATALOG_URL,
-            ).group(0)
-            eoxhub_gateway_url = f"https://{host}{path_prefix}"
-            # notebook path is like curated/EDC_Usecase-NDVI_timeline.ipynb
-            nb_download_url = f"{eoxhub_gateway_url}notebooks-download/{notebook_path}"
+        # catalog url must match sth like /services/eoxhub-gateway/deepesdl/notebook-view/
+        path_prefix = re.match(
+            r"/services/eoxhub-gateway/[^/]+/",
+            CATALOG_URL,
+        ).group(0)
+        eoxhub_gateway_url = f"https://{host}{path_prefix}"
+        # notebook path is like curated/EDC_Usecase-NDVI_timeline.ipynb
+        nb_download_url = f"{eoxhub_gateway_url}notebooks-download/{notebook_path}"
 
-            cookies = {
-                morsel.key: morsel.value for morsel in self.request.cookies.values()
-            }
-            self.record_execution(
-                eoxhub_gateway_url=eoxhub_gateway_url,
-                cookies=cookies,
-                notebook_path=notebook_path,
-            )
-        else:
-            # NOTE: `notebook_path` is usually an absolute path /notebook/foo/bar.ipynb
-            #       `CATALOG_URL` usually is nbviewer.a.com/notebooks
-            #       the target is supposed to be nbviewer.a.com/notebooks/foo/bar.ipynb
-            #       see also the comment in index.ts:getNotebookUrlFromIFrameEvent
-            nb_download_url = urllib.parse.urljoin(
-                CATALOG_URL, f"{notebook_path}?download"
-            )
+        cookies = {
+            morsel.key: morsel.value for morsel in self.request.cookies.values()
+        }
+        self.record_execution(
+            eoxhub_gateway_url=eoxhub_gateway_url,
+            cookies=cookies,
+            notebook_path=notebook_path,
+        )
 
         self.log.info(f"Downloading notebook from {nb_download_url}")
         response = requests.get(nb_download_url)
