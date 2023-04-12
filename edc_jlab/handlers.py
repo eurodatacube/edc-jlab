@@ -38,9 +38,7 @@ class InstallNotebookHandler(APIHandler):
         # notebook path is like curated/EDC_Usecase-NDVI_timeline.ipynb
         nb_download_url = f"{eoxhub_gateway_url}notebooks-download/{notebook_path}"
 
-        cookies = {
-            morsel.key: morsel.value for morsel in self.request.cookies.values()
-        }
+        cookies = {morsel.key: morsel.value for morsel in self.request.cookies.values()}
         self.record_execution(
             eoxhub_gateway_url=eoxhub_gateway_url,
             cookies=cookies,
@@ -52,15 +50,13 @@ class InstallNotebookHandler(APIHandler):
         response.raise_for_status()
         nb_bytes = response.content
 
-        target_path: Path = Path.home() / target_path
-        if target_path.exists():
+        target_path_absolute = Path.home() / target_path
+        if target_path_absolute.exists():
             self.set_status(409)
             self.log.info("Target file already exists")
             self.finish(json.dumps({"message": "Target file already exists"}))
         else:
-
-            target_path.write_bytes(nb_bytes)
-
+            target_path_absolute.write_bytes(nb_bytes)
             self.finish()
 
     def record_execution(self, eoxhub_gateway_url: str, cookies, notebook_path: str):
