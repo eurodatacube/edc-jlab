@@ -54,7 +54,6 @@ export async function deployNotebook(
           body: JSON.stringify({
             nbPath: nbPath,
             targetPath: targetPath,
-            viaEoxhubGateway: true,
             host: document.location.hostname
           }),
           method: 'POST'
