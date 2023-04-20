@@ -28,7 +28,13 @@ export function activateCopyByRouter(
       console.log('Copy notebook from args: ', args, args.search);
       const path = parseCopyUrlParam(args.search as string);
       if (path) {
-        return deployNotebook(docmanager, path);
+        // NOTE: link from url still includes /notebooks/eurodatacube/notebooks
+        //       which we must remove for the current version
+        const pathCorrected = path.replace(
+          /^\/notebooks\/eurodatacube\/notebooks\//,
+          ''
+        );
+        return deployNotebook(docmanager, pathCorrected);
       }
     }
   });
