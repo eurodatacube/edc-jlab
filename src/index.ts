@@ -13,12 +13,11 @@ import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 
 import { activateVersionLink } from './versionLink';
-import { activateNotebookCatalog } from './notebookCatalog';
+import { activateNotebookDeploy } from './notebookCatalog';
 import { activateCopyByRouter } from './copyByRouter';
-import { activateContestSubmit } from './contestSubmit';
 import { activateStacDownload } from './stacDownload';
+import { activateIframeApp } from './iframeApp';
 import { requestAPI } from './handler';
-import { EURODATACUBE_CATALOG } from './constants';
 
 /**
  * Initialization data for the edc-jlab extension.
@@ -41,17 +40,19 @@ const extension: JupyterFrontEndPlugin<void> = {
     factory: IFileBrowserFactory,
     mainMenu: IMainMenu
   ) => {
-    const { name: catalogName, url: catalogUrl } = await requestAPI<any>(
-      'catalog'
+    const { brand: brand } = await requestAPI<any>('brand');
+    const { services: eoxhubServices } = await requestAPI<any>(
+      'whoami',
+      {},
+      `/services/eoxhub-gateway/${brand}`
     );
-    activateNotebookCatalog(app, docmanager, launcher, catalogName, catalogUrl);
+    eoxhubServices.forEach((service: string) => {
+      activateIframeApp(app, launcher, brand, service);
+    });
+    activateNotebookDeploy(docmanager);
     activateVersionLink(app, docmanager, mainMenu);
     activateCopyByRouter(app, docmanager, router);
     activateStacDownload(app, docmanager, factory);
-
-    if (catalogName != EURODATACUBE_CATALOG) {
-      activateContestSubmit(app, factory, catalogName);
-    }
 
     // we set the domain to the last 2 domain parts to be able to communicate with
     // the child frame

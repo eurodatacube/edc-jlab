@@ -14,6 +14,8 @@ for the frontend extension.
 
 ```bash
 docker-compose up
+  # some somedir is probably enough, didn't investigate
+docker-compose exec --user 0 jupyter-user bash -c "chmod a+rw -R /opt/conda/envs/default/" && docker-compose exec jupyter-user /mnt/development_install.sh
 docker-compose exec jupyter-user bash -c "cd /mnt && jlpm run watch"
 ```
 

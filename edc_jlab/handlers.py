@@ -5,36 +5,25 @@ import requests
 import json
 from pathlib import Path, PurePath
 import os
-import urllib.parse
 import shutil
 from textwrap import dedent
 import typing
-import re
 
 
-CATALOG_NAME = os.environ["CATALOG_NAME"]
-CATALOG_URL = os.environ["CATALOG_URL"]
+BRAND = os.environ["BRAND"]
 
 
 class InstallNotebookHandler(APIHandler):
-    # The following decorator should be present on all verb methods (head, get, post,
-    # patch, put, delete, options) to ensure only authorized user can request the
-    # Jupyter server
     @tornado.web.authenticated
     def post(self) -> None:
         body = self.get_json_body()
         notebook_path = body["nbPath"]
         target_path = body["targetPath"]
-        host = body["host"]
+        host = self.request.host
 
         self.log.info(f"Deploying {notebook_path} to {target_path}")
 
-        # catalog url must match sth like /services/eoxhub-gateway/deepesdl/notebook-view/
-        path_prefix = re.match(
-            r"/services/eoxhub-gateway/[^/]+/",
-            CATALOG_URL,
-        ).group(0)
-        eoxhub_gateway_url = f"https://{host}{path_prefix}"
+        eoxhub_gateway_url = f"https://{host}/services/eoxhub-gateway/{BRAND}/"
         # notebook path is like curated/EDC_Usecase-NDVI_timeline.ipynb
         nb_download_url = f"{eoxhub_gateway_url}notebooks-download/{notebook_path}"
 
@@ -74,15 +63,15 @@ class InstallNotebookHandler(APIHandler):
         record_request.raise_for_status()
 
 
-class CatalogHandler(APIHandler):
+class BrandHandler(APIHandler):
     @tornado.web.authenticated
     def get(self):
         # NOTE: the catalog depends on the user profile, which is stored in an env var
         # as by our kubespawner config
+        # Deprecated to brand handler
         self.finish(
             {
-                "name": CATALOG_NAME,
-                "url": CATALOG_URL,
+                "brand": BRAND,
             }
         )
 
@@ -205,7 +194,7 @@ def setup_handlers(web_app):
 
     endpoints = [
         ("install_notebook", InstallNotebookHandler),
-        ("catalog", CatalogHandler),
+        ("brand", BrandHandler),
         ("contest_submit", ContestSubmitHandler),
         ("stac_item", StacItemHandler),
     ]
