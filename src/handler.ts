@@ -16,7 +16,13 @@ export async function requestAPI<T>(
 ): Promise<T> {
   // Make request to Jupyter API
   const settings = ServerConnection.makeSettings();
-  const requestUrl = URLExt.join(settings.baseUrl, apiNamespace, endPoint);
+  const parsedBaseUrl = URLExt.parse(settings.baseUrl);
+  // if apiNamespace is an absolut path, build url without prefix in settings
+  const actualBaseUrl =
+    apiNamespace[0] === '/'
+      ? `${parsedBaseUrl.protocol}//${parsedBaseUrl.host}/`
+      : settings.baseUrl;
+  const requestUrl = URLExt.join(actualBaseUrl, apiNamespace, endPoint);
 
   let response: Response;
   try {
