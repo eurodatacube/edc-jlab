@@ -24,7 +24,7 @@ export function activateIframeApp(
 ) {
   const category = 'EOxHub';
 
-  const logoUrl = `https://hub.eox.at/services/eoxhub-gateway/eurodatacube/brand-logo`;
+  const logoUrl = `https://hub.eox.at/services/eoxhub-gateway/${brand}/brand-logo`;
   const brandIconLarge = new LabIcon({
     name: 'edc:brand_large',
     // NOTE: height and width should be 100%, but this breaks
