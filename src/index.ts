@@ -41,11 +41,12 @@ const extension: JupyterFrontEndPlugin<void> = {
     mainMenu: IMainMenu
   ) => {
     const { brand: brand } = await requestAPI<any>('brand');
-    const { services: eoxhubServices } = await requestAPI<any>(
-      'whoami',
-      {},
-      `/services/eoxhub-gateway/${brand}`
-    );
+
+    const whoamiUrl = `/services/eoxhub-gateway/${brand}/whoami`;
+    const whoamiResponse = await fetch(whoamiUrl);
+    const whoamiData = await whoamiResponse.json();
+    const eoxhubServices = whoamiData['services'];
+
     eoxhubServices.forEach((service: string) => {
       activateIframeApp(app, launcher, brand, service);
     });
