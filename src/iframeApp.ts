@@ -11,6 +11,9 @@ function createWidget(appUrl: string): MainAreaWidget<IFrame> {
   const iframe = new IFrame();
   iframe.url = appUrl;
 
+  const iframeDomElem = iframe.node.querySelector('iframe');
+  iframeDomElem.removeAttribute('sandbox');
+
   return new MainAreaWidget({
     content: iframe
   });
