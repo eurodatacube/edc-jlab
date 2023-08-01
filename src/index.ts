@@ -12,7 +12,6 @@ import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 
-import { activateVersionLink } from './versionLink';
 import { activateNotebookDeploy } from './notebookCatalog';
 import { activateCopyByRouter } from './copyByRouter';
 import { activateStacDownload } from './stacDownload';
@@ -51,7 +50,6 @@ const extension: JupyterFrontEndPlugin<void> = {
       activateIframeApp(app, launcher, brand, service);
     });
     activateNotebookDeploy(docmanager);
-    activateVersionLink(app, docmanager, mainMenu);
     activateCopyByRouter(app, docmanager, router);
     activateStacDownload(app, docmanager, factory);
 
