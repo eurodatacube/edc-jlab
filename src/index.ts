@@ -15,7 +15,7 @@ import { IMainMenu } from '@jupyterlab/mainmenu';
 import { activateNotebookDeploy } from './notebookCatalog';
 import { activateCopyByRouter } from './copyByRouter';
 import { activateStacDownload } from './stacDownload';
-import { activateIframeApp } from './iframeApp';
+import { activateIframeApp, IframeApp } from './iframeApp';
 import { requestAPI } from './handler';
 
 /**
@@ -46,7 +46,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     const whoamiData = await whoamiResponse.json();
     const eoxhubServices = whoamiData['services'];
 
-    eoxhubServices.forEach((service: string) => {
+    eoxhubServices.forEach((service: IframeApp) => {
       activateIframeApp(app, launcher, brand, service);
     });
     activateNotebookDeploy(docmanager);

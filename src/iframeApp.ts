@@ -19,47 +19,59 @@ function createWidget(appUrl: string): MainAreaWidget<IFrame> {
   });
 }
 
+export type IframeApp = {
+  key: string;
+  name: string;
+  logo: string;
+};
+
+function isPathAbsolute(path: string): boolean {
+  // there doesn't seem to be a library function to do this
+  return /^(?:\/|[a-z]+:\/\/)/.test(path);
+}
+
 export function activateIframeApp(
   app: JupyterFrontEnd<JupyterFrontEnd.IShell>,
   launcher: ILauncher,
   brand: string,
-  service: string
+  service: IframeApp
 ) {
   const category = 'Applications';
 
-  const logoUrl = `https://hub.eox.at/services/eoxhub-gateway/${brand}/brand-logo`;
+  const baseBrandUrl = `https://hub.eox.at/services/eoxhub-gateway/${brand}`;
+  const appUrl = `${baseBrandUrl}/${service.key}/`;
+  const logoUrl = isPathAbsolute(service.logo)
+    ? service.logo
+    : `${baseBrandUrl}/${service.logo}`;
+
   const brandIcon = new LabIcon({
-    name: 'edc:brand',
+    name: `edc:app_${service.key}`,
     svgstr: `<svg height="100%25" width="100%25" xmlns="http://www.w3.org/2000/svg">
       <image href="${logoUrl}" height="100%25" width="100%25"/>
     </svg>`
-  })
+  });
 
-  function createCommand(id: string, label: string, url: string): string {
-    let appWidget: MainAreaWidget<IFrame> = null;
-    const catalogCommandName = `edc:${service}_${id}`;
-    app.commands.addCommand(catalogCommandName, {
-      label,
-      icon: brandIcon,
-      execute: () => {
-        if (!appWidget || !appWidget.isAttached) {
-          // it would be nicer to keep the widget instance, but it seems that
-          // detaching destroys some properties, e.g. the tab title
-          appWidget = createWidget(url);
-          appWidget.title.label = label;
-          appWidget.title.icon = brandIcon;
-          appWidget.title.closable = true;
-          app.shell.add(appWidget, 'main');
-        }
-        app.shell.activateById(appWidget.id);
+  let appWidget: MainAreaWidget<IFrame> = null;
+  const catalogCommandName = `edc:service_${service.key}}`;
+  app.commands.addCommand(catalogCommandName, {
+    label: service.name,
+    icon: brandIcon,
+    execute: () => {
+      if (!appWidget || !appWidget.isAttached) {
+        // it would be nicer to keep the widget instance, but it seems that
+        // detaching destroys some properties, e.g. the tab title
+        appWidget = createWidget(appUrl);
+        appWidget.title.label = service.name;
+        appWidget.title.icon = brandIcon;
+        appWidget.title.closable = true;
+        app.shell.add(appWidget, 'main');
       }
-    });
-    return catalogCommandName;
-  }
-  const appUrl = `/services/eoxhub-gateway/${brand}/${service}/`;
+      app.shell.activateById(appWidget.id);
+    }
+  });
   launcher.add({
     category,
-    command: createCommand(service, service, appUrl),
+    command: catalogCommandName,
     rank: 1
   });
 }
