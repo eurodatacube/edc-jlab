@@ -25,7 +25,7 @@ export function activateIframeApp(
   brand: string,
   service: string
 ) {
-  const category = 'EOxHub Applications';
+  const category = 'Applications';
 
   const logoUrl = `https://hub.eox.at/services/eoxhub-gateway/${brand}/brand-logo`;
   const brandIcon = new LabIcon({
