@@ -1,7 +1,7 @@
 version: "3.7"
 services:
     jupyter-user:
-        image: 527538141574.dkr.ecr.eu-central-1.amazonaws.com/eoxhub-jupyterlab:2023.03-02
+        image: 527538141574.dkr.ecr.eu-central-1.amazonaws.com/eoxhub-jupyterlab:2023.10-02-devel
         #- BRAND=eurodatatriangle
         environment:
         - JUPYTER_ENABLE_LAB=yes
