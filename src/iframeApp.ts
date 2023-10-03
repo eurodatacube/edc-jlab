@@ -38,9 +38,7 @@ export function activateIframeApp(
 ) {
   const category = 'Applications';
 
-  const baseBrandUrl = `https://hub.eox.at/services/eoxhub-gateway/${brand}`;
-
-  let appUrl = `${baseBrandUrl}/${service.key}/`;
+  let appUrl = `/services/eoxhub-gateway/${brand}/${service.key}/`;
   // Workaround for notebook-view app:
   if (service.key === 'notebook-view') {
       appUrl += '?deploy=jupyterlab';
@@ -48,7 +46,7 @@ export function activateIframeApp(
 
   const logoUrl = isPathAbsolute(service.logo)
     ? service.logo
-    : `${baseBrandUrl}/${service.logo}`;
+    : `https://hub.eox.at/services/eoxhub-gateway/${brand}/${service.logo}`;
 
   const brandIcon = new LabIcon({
     name: `edc:app_${service.key}`,
