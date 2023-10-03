@@ -25,39 +25,29 @@ export function activateIframeApp(
   brand: string,
   service: string
 ) {
-  const category = 'EOxHub';
+  const category = 'EOxHub Applications';
 
   const logoUrl = `https://hub.eox.at/services/eoxhub-gateway/${brand}/brand-logo`;
-  const brandIconLarge = new LabIcon({
-    name: 'edc:brand_large',
-    // NOTE: height and width should be 100%, but this breaks
-    //       jupyterlab parsing of svg
-    svgstr: `<svg height="52" width="52" xmlns="http://www.w3.org/2000/svg">
-      <image href="${logoUrl}" height="52" width="52"/>
+  const brandIcon = new LabIcon({
+    name: 'edc:brand',
+    svgstr: `<svg height="100%25" width="100%25" xmlns="http://www.w3.org/2000/svg">
+      <image href="${logoUrl}" height="100%25" width="100%25"/>
     </svg>`
-  });
-  const brandIconSmall = new LabIcon({
-    name: 'edc:brand_small',
-    // NOTE: height and width should be 100%, but this breaks
-    //       jupyterlab parsing of svg
-    svgstr: `<svg height="14" width="14" xmlns="http://www.w3.org/2000/svg">
-      <image href="${logoUrl}" height="14" width="14"/>
-    </svg>`
-  });
+  })
 
   function createCommand(id: string, label: string, url: string): string {
     let appWidget: MainAreaWidget<IFrame> = null;
     const catalogCommandName = `edc:${service}_${id}`;
     app.commands.addCommand(catalogCommandName, {
       label,
-      icon: brandIconLarge,
+      icon: brandIcon,
       execute: () => {
         if (!appWidget || !appWidget.isAttached) {
           // it would be nicer to keep the widget instance, but it seems that
           // detaching destroys some properties, e.g. the tab title
           appWidget = createWidget(url);
           appWidget.title.label = label;
-          appWidget.title.icon = brandIconSmall;
+          appWidget.title.icon = brandIcon;
           appWidget.title.closable = true;
           app.shell.add(appWidget, 'main');
         }
