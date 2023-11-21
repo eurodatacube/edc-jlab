@@ -46,8 +46,8 @@ const extension: JupyterFrontEndPlugin<void> = {
     const whoamiData = await whoamiResponse.json();
     const eoxhubServices = whoamiData['services'];
 
-    eoxhubServices.forEach((service: IframeApp) => {
-      activateIframeApp(app, launcher, brand, service);
+    eoxhubServices.forEach((service: IframeApp, index: number) => {
+      activateIframeApp(app, launcher, brand, service, index);
     });
     activateNotebookDeploy(docmanager);
     activateCopyByRouter(app, docmanager, router);

@@ -34,7 +34,8 @@ export function activateIframeApp(
   app: JupyterFrontEnd<JupyterFrontEnd.IShell>,
   launcher: ILauncher,
   brand: string,
-  service: IframeApp
+  service: IframeApp,
+  rank: number
 ) {
   const category = 'Applications';
 
@@ -76,6 +77,6 @@ export function activateIframeApp(
   launcher.add({
     category,
     command: catalogCommandName,
-    rank: 1
+    rank: rank
   });
 }
