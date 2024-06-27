@@ -24,7 +24,7 @@ Add this to your `/etc/hosts`
 127.0.0.1   jupyter.myeox.at nbviewer.myeox.at
 ````
 
-Navigate to jupyter.myeox.at .
+Navigate to jupyter.myeox.at:8076/lab .
 
 
 # Build package
