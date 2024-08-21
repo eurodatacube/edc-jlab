@@ -41,6 +41,7 @@ export function activateIframeApp(
 
   let appUrl = `/services/eoxhub-gateway/${brand}/${service.key}/`;
   // Workaround for notebook-view app:
+  // NOTE: this is no longer needed with notebook-view 0.2.0
   if (service.key === 'notebook-view') {
       appUrl += '?deploy=jupyterlab';
   }
